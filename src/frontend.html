@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+<h1>User Management</h1>
+
+    <form id="userForm">
+      <input type="number" id="id" placeholder="ID" required />
+      <input type="text" id="name" placeholder="Name" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="number" id="age" placeholder="Age" required />
+      <button type="submit">Add / Update</button>
+    </form>
+  <hr/>
+    <div class="actions">
+      <input type="number" id="searchId" placeholder="Enter ID to fetch/delete" />
+      <button id="getuserbtn">Get User By ID</button>
+      <button id="deleteUserbtn">Delete User</button>
+      <button id="getAllUserbtn">Get All Users</button>
+    </div>
+     
+    <hr>
+    <p>Fetched Data</p>
+    <pre id="output"></pre>
+    <script src="../dist/index.js"></script>
+  </body>
+</html>
