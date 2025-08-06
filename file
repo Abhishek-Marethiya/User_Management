@@ -1,0 +1,198 @@
+
+   
+      async function saveGroupToServer(group) {
+    const response = await fetch('http://localhost:3000/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(group)
+    });
+    const saved = await response.json();
+    return saved;
+}
+
+
+async function fetchAllGroups() {
+    const response = await fetch('http://localhost:3000/groups');
+    const data = await response.json();
+    return data;
+}
+
+async function displayGroups() {
+    const container = document.getElementById('group-list');
+    const groups = await fetchAllGroups();
+
+    container.innerHTML = groups.map(group => `
+        <div class="border p-4 rounded shadow">
+            <h2 class="text-xl font-bold">${group.name}</h2>
+            <p class="text-gray-600">Participants: ${group.participants.join(', ')}</p>
+            <p class="text-sm text-gray-500 mt-2">Last updated: ${new Date(group.lastModified).toLocaleString()}</p>
+        </div>
+    `).join('');
+}
+
+
+
+        // Group Management Functions
+        function handleGroupEnterKey(event) {
+            if (event.key === 'Enter') {
+                createGroup();
+            }
+        }
+
+        function createGroup() {
+            const nameInput = document.getElementById('new-group-name');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                alert('Please enter a group name', 'warning');
+                return;
+            }
+            
+            if (groups.some(g => g.name === name)) {
+                alert('Group name already exists', 'warning');
+                return;
+            }
+            
+            const newGroup = {
+                id: Date.now().toString(),
+                name: name,
+                participants: [],
+                totalAmount: '',
+                payer: '',
+                splitType: 'equal',
+                created: new Date().toISOString(),
+                lastModified: new Date().toISOString()
+            };
+            
+            groups.push(newGroup);
+            saveGroups();
+            nameInput.value = '';
+            updateGroupsDisplay();
+            switchToGroup(newGroup.id);
+            alert(`Group "${name}" created successfully`, 'success');
+        }
+
+        function switchToGroup(groupId) {
+            // Save current group data before switching
+          
+            
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+            
+            currentGroup = group;
+            
+            // Load group data
+            participants = [...group.participants];
+            currentSplitType = group.splitType;
+            
+            document.getElementById('total-amount').value = group.totalAmount || '';
+            document.getElementById('payer-select').value = group.payer || '';
+            
+            // Update split type radio
+            const splitRadio = document.querySelector(`input[name="split-type"][value="${group.splitType}"]`);
+            if (splitRadio) {
+                splitRadio.checked = true;
+                splitRadio.dispatchEvent(new Event('change'));
+            }
+            
+            updateParticipantsList();
+            updatePayerSelect();
+            updateCustomAmounts();
+            updateGroupsDisplay();
+            updateCurrentGroupInfo();
+            
+            // Reset results
+            document.getElementById('results-container').classList.remove('hidden');
+            document.getElementById('results-content').classList.add('hidden');
+        }
+
+        function deleteCurrentGroup() {
+            if (!currentGroup) return;
+            
+            if (confirm(`Are you sure you want to delete the group "${currentGroup.name}"?`)) {
+                groups = groups.filter(g => g.id !== currentGroup.id);
+                saveGroups();
+                currentGroup = null;
+                
+                // Reset to default state
+                participants = [];
+                currentSplitType = 'equal';
+                document.getElementById('total-amount').value = '';
+                document.getElementById('participant-name').value = '';
+                document.getElementById('payer-select').innerHTML = '<option value="">Select who paid</option>';
+                document.querySelector('input[name="split-type"][value="equal"]').checked = true;
+                document.getElementById('custom-split-section').classList.add('hidden');
+                
+                updateParticipantsList();
+                updateGroupsDisplay();
+                updateCurrentGroupInfo();
+                
+                // Reset results
+                document.getElementById('results-container').classList.remove('hidden');
+                document.getElementById('results-content').classList.add('hidden');
+                
+                alert('Group deleted successfully', 'info');
+            }
+        }
+
+        function updateGroupsDisplay() {
+            const container = document.getElementById('groups-container');
+            
+            if (groups.length === 0) {
+                container.innerHTML = '<div class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm">No groups yet - create your first group!</div>';
+                return;
+            }
+            
+            container.innerHTML = groups.map(group => `
+                <button onclick="switchToGroup('${group.id}')" 
+                        class="px-4 py-2 rounded-lg transition-all font-medium ${
+                            currentGroup && currentGroup.id === group.id 
+                                ? 'bg-primary text-white' 
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        }">
+                    ${group.name}
+                    <span class="text-xs opacity-75 ml-2">(${group.participants.length} people)</span>
+                </button>
+            `).join('');
+        }
+
+        function updateCurrentGroupInfo() {
+            const info = document.getElementById('current-group-info');
+            const nameSpan = document.getElementById('current-group-name');
+            
+            if (currentGroup) {
+                nameSpan.textContent = currentGroup.name;
+                info.classList.remove('hidden');
+            } else {
+                info.classList.add('hidden');
+            }
+        }
+
+        // Override existing functions to save group data
+        const originalAddParticipant = addParticipant;
+        addParticipant = function() {
+            originalAddParticipant();
+           
+        };
+
+        const originalRemoveParticipant = removeParticipant;
+        removeParticipant = function(name) {
+            originalRemoveParticipant(name);
+     
+        };
+
+        // Auto-save on input changes
+        document.addEventListener('DOMContentLoaded', function() {
+displayGroups();
+            
+            // Save data when inputs change
+            document.getElementById('total-amount').addEventListener('input', saveCurrentGroupData);
+            document.getElementById('payer-select').addEventListener('change', saveCurrentGroupData);
+            
+            const splitOptions = document.querySelectorAll('input[name="split-type"]');
+            splitOptions.forEach(option => {
+                option.addEventListener('change', function() {
+                    setTimeout(saveCurrentGroupData, 0); // Save after state updates
+                });
+            });
+        });

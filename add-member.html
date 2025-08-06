@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Member</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+   <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        secondary: '#c084fc',
+                        accent: '#fbbf24',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        info: '#3b82f6'
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 0.3s ease-in-out',
+                        slideIn: 'slideIn 0.3s ease-out'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+     .transition-smooth {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .input-focus:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #0ea5e9;
+            border-color: #0ea5e9;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.1), 0 4px 6px -2px rgba(14, 165, 233, 0.05);
+        }
+        .form-container {
+            animation: fadeIn 0.3s ease-out, scaleIn 0.2s ease-out;
+        }
+        .hero-feature {
+            animation: fadeIn 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+        .hero-feature:nth-child(1) { animation-delay: 0.1s; }
+        .hero-feature:nth-child(2) { animation-delay: 0.2s; }
+        .hero-feature:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
+        .animate-slideIn { animation: slideIn 0.3s ease-out; }
+    </style>'
+ 
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2"></div>
+
+  <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-4 text-center text-black-600">Add New Member</h2>
+    
+    <form id="add-member-form" class="space-y-4">
+      <div class="space-y-2">
+                        <label for="name" class="block text-sm font-medium"> Name</label>
+                        <input
+                            id="name"
+                            name="name"
+                            type="text"
+                            placeholder="Enter your full name"
+                            class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth"
+                        />
+                    </div>
+      <div class="space-y-2">
+        <label for="email" class="block text-sm font-medium">Email</label>
+        <input 
+        type="email" 
+        id="email" ]
+        required 
+         placeholder="Enter your email"
+        class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth"
+        />
+      </div>
+      <button type="submit" class="w-full btn-primary text-white py-2 px-4 rounded-md font-medium transition-smooth">Add Member</button>
+    </form>
+
+  </div>
+
+  <script src="js/add-member.js"></script>
+</body>
+</html>

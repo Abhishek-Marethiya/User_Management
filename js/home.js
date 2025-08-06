@@ -1,0 +1,85 @@
+// home.js
+
+const API_BASE = 'http://localhost:3000';
+const usernameSpan = document.getElementById('username');
+const groupsContainer = document.getElementById('groups-container');
+const logoutBtn = document.getElementById('logout-btn');
+const user = JSON.parse(localStorage.getItem('user'));   // logged in user detail..
+if (!user) {
+  alert("You're not logged in!");
+  window.location.href = 'index.html';
+}
+
+
+
+usernameSpan.textContent = user.name;
+
+
+// Fetch and display user's groups
+async function fetchGroups() {
+  try {
+    const res = await fetch(`${API_BASE}/groups?memberIds_like=${user.id}`);
+    const groups = await res.json();
+    
+    
+    if (groups.length === 0) {
+      groupsContainer.innerHTML = `<p class="text-gray-500 col-span-full">You haven't joined any groups yet.</p>`;
+      return;
+    }
+
+    groups.forEach(group => {
+      const card = document.createElement('div');
+      card.className = 'bg-white p-4 shadow rounded cursor-pointer hover:bg-gray-50 flex justify-between items-center ';
+      card.innerHTML = `         
+        <div>
+       <h3 class="text-lg font-semibold text-green-700">${group.name}</h3>
+          <p class="text-sm text-gray-500">Members: ${group.participants?.length || 0}</p>
+        </div>
+        <div>
+          <button onclick="event.stopPropagation(); handleDeleteGroup('${group.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest mr-1">Delete</button>
+          
+         <a href="add-expenses.html?groupId=${group.id}" class="btn btn-gradient btn-sm tracking-widest">
+  Add Expense
+</a>
+
+          </div>
+  
+      `;
+      card.addEventListener('click', () => {
+        localStorage.setItem('selectedGroupId', group.id);
+        window.location.href = 'group.html';
+      });
+
+      groupsContainer.appendChild(card);
+    });
+  } catch (err) {
+    console.error('Failed to fetch groups:', err);
+  }
+}
+
+fetchGroups();
+
+// Logout logic
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('user');
+  window.location.href = 'index.html';
+});
+
+
+async function handleDeleteGroup(id) {
+try{
+ console.log(id);
+        const res = await fetch(`${API_BASE}/groups/${id}`,{
+              method: "DELETE",
+               headers: {
+            "Content-Type": "application/json"
+        },
+        });
+   if(res.ok)
+    showToast("Group Deleted Successfully!","success")
+}
+catch (err) {
+    console.error('Failed to delete group:', err);
+    showToast("Failed to delete group!","error")
+  }
+}

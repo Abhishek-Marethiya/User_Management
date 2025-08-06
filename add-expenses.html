@@ -1,0 +1,156 @@
+<!-- add-expense.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Expense</title>
+ <script defer src="js/home.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+   <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        secondary: '#c084fc',
+                        accent: '#fbbf24',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        info: '#3b82f6'
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 0.3s ease-in-out',
+                        slideIn: 'slideIn 0.3s ease-out'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+     .transition-smooth {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .input-focus:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #0ea5e9;
+            border-color: #0ea5e9;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.1), 0 4px 6px -2px rgba(14, 165, 233, 0.05);
+        }
+        .form-container {
+            animation: fadeIn 0.3s ease-out, scaleIn 0.2s ease-out;
+        }
+        .hero-feature {
+            animation: fadeIn 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+        .hero-feature:nth-child(1) { animation-delay: 0.1s; }
+        .hero-feature:nth-child(2) { animation-delay: 0.2s; }
+        .hero-feature:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
+        .animate-slideIn { animation: slideIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-green-50 min-h-screen">
+    <header class="bg-white shadow-md py-4 transition-smooth">
+    
+  <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+
+    <div class="flex items-center space-x-4 cursor-pointer" onclick="window.location.href='addexpenses.html'">
+    <div class="logo bg-white/20 backdrop-blur-sm rounded-full" >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+      <h1 class="text-2xl font-bold text-gray-800 animate-fadeIn">
+        Welcome, <span id="username" class="text-cyan-600">User</span>
+      </h1>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <a href="home.html"
+         class="btn-primary text-white px-4 py-2 rounded-md flex items-center gap-2 transition-smooth">
+       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+         Groups
+      </a>
+
+      <button id="logout-btn"
+              class="px-4 py-[6.5px] rounded-md border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-smooth">
+        Logout
+      </button>
+    </div>
+  </div>
+</header>
+<div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2"></div>
+
+  <div class="max-w-xl mx-auto py-10 px-6 bg-white shadow rounded-lg mt-10 animate-fadeIn">
+    <h1 class="text-2xl font-bold text-black-600 mb-4">Add New Expense</h1>
+
+    <form id="expense-form" class="space-y-4">
+      <div class="space-y-2">
+        <label for="group" class="block mb-1 font-semibold text-gray-700">Group Name</label>
+        <input id="group" name="group" readonly class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth">
+          <!-- clicked group name by js -->
+      </input>
+      </div>
+
+      <div>
+        <label for="title" class="block mb-1 font-semibold text-gray-700">Expense Title</label>
+        <input type="text" id="title" name="title" required class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth">
+      </div>
+
+      <div>
+        <label for="amount" class="block mb-1 font-semibold text-gray-700">Amount</label>
+        <input type="number" id="amount" name="amount" required class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth">
+      </div>
+
+      <div>
+        <label for="paidBy" class="block mb-1 font-semibold text-gray-700">Paid By</label>
+        <select id="paidBy" name="paidBy" class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth">
+          <!-- Group participants will load here -->
+           <option value="participant ki id">participant ka naam</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-1 font-semibold text-gray-700">Split Type</label>
+        <select id="splitType" name="splitType" class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth">
+          <option value="equal">Equally</option>
+          <option value="unequal">Unequally</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-primary text-white px-4 py-2 rounded w-full">Add Expense</button>
+    </form>
+  </div>
+
+  <script src="js/add-expenses.js"></script>
+</body>
+</html>

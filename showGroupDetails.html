@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+   <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        secondary: '#c084fc',
+                        accent: '#fbbf24',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        info: '#3b82f6'
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 0.3s ease-in-out',
+                        slideIn: 'slideIn 0.3s ease-out'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
+        .animate-slideIn { animation: slideIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-green-50 min-h-screen">
+  <header class="header">
+            <div class="header-container">
+                <div class="header-content">
+                    <div class="header-left cursor-pointer" onclick="window.location.href='addexpenses.html'">
+                        <div class="logo" >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                        <h1 class="app-title">SplitWise</h1>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn btn-outline btn-sm" onclick="window.location.href='addGroup.html'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            Groups
+                        </button>
+                        <button class="btn btn-gradient btn-sm" onclick="window.location.href='addexpenses.html'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 12h14"></path>
+                                <path d="M12 5v14"></path>
+                            </svg>
+                            Add Expense
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2"></div>
+          <div class="bg-white rounded-2xl shadow-lg p-6 h-fit m-3 flex justify-between">
+            <div  class="flex gap-3">
+                  <h2 class="text-2xl font-semibold text-gray-800 mb-6">Group Name:</h2> 
+                   <h2 class="text-2xl font-semibold  mb-6 text-[#10b981]" id="group-name">Group Details</h2>
+            </div>
+              <div class="flex gap-3">
+                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Total Amount: </h2>
+                   <div id="total-amount" class="text-2xl font-semibold text-[#10b981]"></div>
+              </div>
+            
+            </div>
+       
+
+
+        <div class="bg-white rounded-2xl shadow-lg p-6 h-fit m-3">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Split Results</h2>
+                
+                <div id="results-container" class="text-center text-gray-500 py-12">
+                    <div class="text-6xl mb-4">🧾</div>
+                    <p>Enter bill details and calculate to see results</p>
+                </div>
+
+                <div id="results-content" class="hidden">
+        
+                    <div id="split-summary" class="bg-gradient-to-r from-primary/10 to-green-100 rounded-lg p-4 mb-6"></div>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Individual Shares</h3>
+                        <div id="individual-shares" class="space-y-2"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Who Owes Whom</h3>
+                        <div id="settlements" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    
+
+    <script src="showGroupDetails.js"></script>
+</body>
+</html>

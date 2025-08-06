@@ -1,0 +1,288 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Splitwise - Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0ea5e9',
+                        'primary-foreground': '#fafafa',
+                        secondary: '#10b981',
+                        'secondary-foreground': '#fafafa',
+                        background: '#ffffff',
+                        foreground: '#334155',
+                        muted: '#f1f5f9',
+                        'muted-foreground': '#64748b',
+                        border: '#e2e8f0',
+                        input: '#e2e8f0',
+                        card: '#ffffff',
+                        'card-foreground': '#334155',
+                    },
+                    backgroundImage: {
+                        'gradient-primary': 'linear-gradient(135deg, #0ea5e9, #06b6d4)',
+                        'gradient-secondary': 'linear-gradient(135deg, #10b981, #059669)',
+                        'gradient-hero': 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -1px rgba(14, 165, 233, 0.06)',
+                        'medium': '0 10px 15px -3px rgba(14, 165, 233, 0.1), 0 4px 6px -2px rgba(14, 165, 233, 0.05)',
+                        'large': '0 25px 50px -12px rgba(14, 165, 233, 0.25)',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'scale-in': 'scaleIn 0.2s ease-out',
+                        'slide-in': 'slideIn 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        scaleIn: {
+                            '0%': { transform: 'scale(0.95)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .transition-smooth {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .input-focus:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #0ea5e9;
+            border-color: #0ea5e9;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.1), 0 4px 6px -2px rgba(14, 165, 233, 0.05);
+        }
+        .form-container {
+            animation: fadeIn 0.3s ease-out, scaleIn 0.2s ease-out;
+        }
+        .hero-feature {
+            animation: fadeIn 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+        .hero-feature:nth-child(1) { animation-delay: 0.1s; }
+        .hero-feature:nth-child(2) { animation-delay: 0.2s; }
+        .hero-feature:nth-child(3) { animation-delay: 0.3s; }
+            @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
+        .animate-slideIn { animation: slideIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-hero">
+     <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2"></div>
+    <div class="min-h-screen flex">
+        <!-- Left side - Hero Section -->
+        <div class="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12 text-white relative overflow-hidden ">
+            <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+            <div class="relative z-10 text-center max-w-md">
+                <div class="mb-8">
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl font-bold mb-4">Splitwise</h1>
+                    <p class="text-xl opacity-90 mb-8">
+                        Split expenses with friends and family
+                    </p>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="hero-feature flex items-center space-x-4">
+                        <div class="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-left">Add friends and split bills easily</span>
+                    </div>
+                    <div class="hero-feature flex items-center space-x-4">
+                        <div class="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-left">Track expenses and balances</span>
+                    </div>
+                    <div class="hero-feature flex items-center space-x-4">
+                        <div class="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                            </svg>
+                        </div>
+                        <span class="text-left">Settle up with one click</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right side - Auth Form -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 bg-white/95 backdrop-blur-sm">
+            <div class="form-container w-full max-w-md bg-white rounded-lg shadow-large border-0 p-8">
+                <!-- Mobile Logo -->
+                <div class="lg:hidden mb-6 text-center">
+                    <div class="flex items-center justify-center mb-2">
+                        <div class="bg-gradient-primary rounded-full p-2">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <h1 class="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                        Splitwise
+                    </h1>
+                </div>
+
+                <!-- Form Header -->
+                <div class="text-center mb-6">
+                    <h2 id="form-title" class="text-2xl font-bold mb-2">Welcome back</h2>
+                    <p id="form-description" class="text-muted-foreground">
+                        Sign in to your account to continue
+                    </p>
+                </div>
+                
+                <!-- Auth Form -->
+                <form id="auth-form" class="space-y-4">
+                    <!-- Name Field (hidden by default) -->
+                    <div id="name-field" class="space-y-2 hidden">
+                        <label for="name" class="text-sm font-medium">Full Name</label>
+                        <input
+                            id="name"
+                            name="name"
+                            type="text"
+                            placeholder="Enter your full name"
+                            class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth"
+                        />
+                    </div>
+                    
+                    <!-- Email Field -->
+                    <div class="space-y-2">
+                        <label for="email" class="text-sm font-medium">Email</label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            placeholder="Enter your email"
+                            class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth"
+                            required
+                        />
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div class="space-y-2">
+                        <label for="password" class="text-sm font-medium">Password</label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            placeholder="Enter your password"
+                            class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth"
+                            required
+                        />
+                    </div>
+                    
+                    <!-- Confirm Password Field (hidden by default) -->
+                    <div id="confirm-password-field" class="space-y-2 hidden">
+                        <label for="confirm-password" class="text-sm font-medium">Confirm Password</label>
+                        <input
+                            id="confirm-password"
+                            name="confirm-password"
+                            type="password"
+                            placeholder="Confirm your password"
+                            class="w-full px-3 py-2 border border-input bg-background rounded-md input-focus transition-smooth"
+                        />
+                    </div>
+                    
+                    <!-- Forgot Password Link (login only) -->
+                    <div id="forgot-password" class="text-right">
+                        <button
+                            type="button"
+                            class="text-sm text-primary hover:text-primary/80 transition-smooth"
+                        >
+                            Forgot password?
+                        </button>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button 
+                        type="submit" 
+                        class="w-full btn-primary text-white py-2 px-4 rounded-md font-medium transition-smooth"
+                    >
+                        <span id="submit-text">Sign In</span>
+                    </button>
+                </form>
+                
+                <!-- Divider -->
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-border"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="bg-white px-2 text-muted-foreground">or</span>
+                    </div>
+                </div>
+                
+                <!-- Google Button -->
+                <button 
+                    type="button"
+                    class="w-full flex items-center justify-center px-4 py-2 border border-border rounded-md transition-smooth hover:bg-muted"
+                >
+                    <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Continue with Google
+                </button>
+                
+                <!-- Toggle Link -->
+                <div class="text-center text-sm mt-6">
+                    <span class="text-muted-foreground" id="toggle-text">
+                        Don't have an account? 
+                    </span>
+                    <button
+                        type="button"
+                        id="toggle-mode"
+                        class="text-primary hover:text-primary/80 transition-smooth font-medium"
+                    >
+                        Sign up
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="js/auth.js"></script>
+</body>
+</html>
