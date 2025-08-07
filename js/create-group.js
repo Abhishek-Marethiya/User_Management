@@ -38,7 +38,7 @@ async function loadUsers() {
             checkbox.className = "flex items-center";
             const nameClass = user.id === loggedInuser.id ? "text-green-600 font-semibold" : "";            checkbox.innerHTML = `
               <input type="checkbox" id="user-${user.id}" value="${user.id}" class="mr-2">
-        <label for="user-${user.id}" class="${nameClass}">${user.name}</label>
+              <label for="user-${user.id}" class="${nameClass}">${user.name}</label>
             `;
 
             participantsContainer.appendChild(checkbox);
@@ -62,15 +62,21 @@ form.addEventListener("submit", async (e) => {
          console.log(alreadyExistgroup);
          
          if(alreadyExistgroup.length>0){
-              showToast("Group with this is already exist!","error");
+              showToast("Group with this name is already exist!","error");
             return;
          }
-   
+   //saare user nikal lunga phir unki id se unka name store krwa dunga
+    const allUsersRes = await fetch(API_USERS);
+    const allUsers = await allUsersRes.json();
 
-    const participantIds = Array.from(checked).map(input => parseInt(input.value));
-    console.log(participantIds);
+    const participantNames = Array.from(checked).map(input => {
+        const userId=parseInt(input.value);
+        const user=allUsers.find(u=>u.id===userId);
+        return user?.name || "";
+    });
+    console.log(participantNames);
   
-    if (participantIds.length < 2) {
+    if (participantNames.length < 2) {
         showToast("Please select at least 2 participants.","error");
         return;
     }
@@ -78,8 +84,9 @@ form.addEventListener("submit", async (e) => {
     const newGroup = {
         id:Date.now().toString(),
         name: groupName,
-        participants: participantIds,
-        expenses: [], 
+        participants: participantNames,
+        created: new Date().toISOString(),
+        lastModified: new Date().toISOString(), 
     };
 
     try {
@@ -102,3 +109,11 @@ form.addEventListener("submit", async (e) => {
 });
 
 loadUsers();
+
+
+const logoutBtn = document.getElementById('logout-btn');
+// Logout logic
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('user');
+  window.location.href = 'index.html';
+});

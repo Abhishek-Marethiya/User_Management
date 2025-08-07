@@ -20,13 +20,16 @@ function showToast(message, type = "success") {
     setTimeout(() => toast.remove(), 500); // Remove after fade
   }, 3000);
 }
+
+
 const API_GROUPS = "http://localhost:3000/groups";
 const API_USERS = "http://localhost:3000/users";
+const API_EXPENSES="http://localhost:3000/expenses";
 
 const groupName = document.getElementById("group");
 const paidBySelect = document.getElementById("paidBy");
 const form = document.getElementById("expense-form");
-
+const requiredGroup="";
 // Extract groupId from URL
 const urlParams = new URLSearchParams(window.location.search);
 console.log(urlParams);
@@ -34,34 +37,28 @@ console.log(urlParams);
 const defaultGroupId = urlParams.get("groupId");
 console.log(defaultGroupId);
 
+//name set krne ke liye input field
 async function loadGroup() {
     console.log(defaultGroupId);
     
   const res = await fetch(API_GROUPS);
   const groups = await res.json();
  
-  const requiredGroup=groups.filter((group)=> group.id==defaultGroupId);  
+  requiredGroup=groups.filter((group)=> group.id==defaultGroupId);  
   groupName.value=requiredGroup[0].name
  
 }
 
+//particpants to add in expenses so that choose kr skte kisne pay kiya
 async function loadParticipants() {
   const res = await fetch(`${API_GROUPS}/${defaultGroupId}`);
   const group = await res.json();
   console.log("group",group);
   
-
-  for (const userId of group.participants) {
-    
-     let id=userId.toString();
-         
-    const userRes = await fetch(`${API_USERS}/${id}`);
-    const user = await userRes.json();
-    console.log("user from users",user );
-
+  for (const userName of group.participants) {
     const option = document.createElement("option");
-    option.value = user.id;
-    option.textContent = user.name;
+    option.value = userName;
+    option.textContent = userName;
     paidBySelect.appendChild(option);
   }
 }
@@ -70,32 +67,48 @@ async function loadParticipants() {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const data = {
-    title: form.title.value,
-    amount: parseFloat(form.amount.value),
-    paidBy: form.paidBy.value,
-    splitType: form.splitType.value,
+  const amount = parseFloat(form.amount.value);
+  const paidBy = form.paidBy.value;
+  const splitBetween = group.participants.map(name => ({
+    memberName: name,
+    share: parseFloat((amount / group.participants.length).toFixed(2)) // equal split
+  }));
+
+
+  const expense = {
+    id: Date.now().toString(),
     groupId: defaultGroupId,
-    date: new Date().toISOString()
+    description: form.title.value,
+    amount,
+    paidBy,
+    date: new Date().toISOString(),
+    splitType
   };
 
-  const groupRes = await fetch(`${API_GROUPS}/${data.groupId}`);
-  const group = await groupRes.json();
- console.log(group);
- 
-  group.expenses = group.expenses || [];
-  group.expenses.push(data);
-  console.log(group.expenses);
-  
-  // group ko update , expenses add krke
-  await fetch(`${API_GROUPS}/${data.groupId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(group)
-  });
+  try {
+    const res=await fetch(API_EXPENSES,{
+      method:"POST",
+      headers: { "Content-Type": "application/json" },
+      body:JSON.stringify(expense)
+    });
+   if (res.ok) {
+      showToast("Expense added!");
+      //navigate to group page
+      window.location.href = `group.html?groupId=${defaultGroupId}`;
+    } else {
+      showToast("Failed to add expense", "error");
+    }
+  } catch (err) {
+    console.error("Error posting expense", err);
+    showToast("Something went wrong", "error");
+  }
+});
 
-  showToast("Expense added!");
-//   window.location.href = `group.html?id=${data.groupId}`;
+const logoutBtn = document.getElementById('logout-btn');
+// Logout logic
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('user');
+  window.location.href = 'index.html';
 });
 
 document.addEventListener("DOMContentLoaded",()=>{

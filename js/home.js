@@ -3,13 +3,30 @@
 const API_BASE = 'http://localhost:3000';
 const usernameSpan = document.getElementById('username');
 const groupsContainer = document.getElementById('groups-container');
-const logoutBtn = document.getElementById('logout-btn');
+
+
 const user = JSON.parse(localStorage.getItem('user'));   // logged in user detail..
 if (!user) {
   alert("You're not logged in!");
   window.location.href = 'index.html';
 }
 
+function showToast(message, type = "success") {
+  const toastContainer = document.getElementById("toast-container");
+
+  const toast = document.createElement("div");
+  toast.className = `px-4 py-2 rounded shadow text-white animate-slide-in 
+    ${type === "success" ? "bg-green-500" : "bg-red-500"}`;
+
+  toast.innerText = message;
+
+  toastContainer.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("opacity-0", "transition-opacity", "duration-500");
+    setTimeout(() => toast.remove(), 500); // Remove after fade
+  }, 3000);
+}
 
 
 usernameSpan.textContent = user.name;
@@ -29,11 +46,13 @@ async function fetchGroups() {
 
     groups.forEach(group => {
       const card = document.createElement('div');
-      card.className = 'bg-white p-4 shadow rounded cursor-pointer hover:bg-gray-50 flex justify-between items-center ';
+      card.className = 'bg-white p-5 shadow rounded cursor-pointer hover:bg-gray-50 flex justify-between items-center relative';
       card.innerHTML = `         
         <div>
        <h3 class="text-lg font-semibold text-green-700">${group.name}</h3>
           <p class="text-sm text-gray-500">Members: ${group.participants?.length || 0}</p>
+         <p class="text-[12px] text-gray-500 absolute bottom-0 right-6">${group.created || null}</p>
+          
         </div>
         <div>
           <button onclick="event.stopPropagation(); handleDeleteGroup('${group.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest mr-1">Delete</button>
@@ -46,8 +65,8 @@ async function fetchGroups() {
   
       `;
       card.addEventListener('click', () => {
-        localStorage.setItem('selectedGroupId', group.id);
-        window.location.href = 'group.html';
+        // localStorage.setItem('selectedGroupId', group.id);
+         window.location.href = `group.html?groupId=${group.id}`;
       });
 
       groupsContainer.appendChild(card);
@@ -58,7 +77,7 @@ async function fetchGroups() {
 }
 
 fetchGroups();
-
+const logoutBtn = document.getElementById('logout-btn');
 // Logout logic
 logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('user');

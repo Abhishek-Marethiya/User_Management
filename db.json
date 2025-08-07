@@ -1,105 +1,13 @@
 {
   "users": [
-    {
-      "id": "1754508520946",
-      "name": "Abhishek Marethiya",
-      "email": "abhishek@gmail.com",
-      "password": "123456"
-    },
-    {
-      "id": "1754508623887",
-      "name": "vansh",
-      "email": "ab@gmail.com"
-    },
-    {
-      "id": "1754510281025",
-      "name": "Vishnu",
-      "email": "v@w.com",
-      "password": "123456"
-    }
+   
   ],
   "groups": [
-    {
-      "id": "1754508677236",
-      "name": "Group-1",
-      "participants": [
-        1754508520946,
-        1754508623887
-      ],
-      "expenses": [
-        {
-          "title": "e1",
-          "amount": 23,
-          "paidBy": "1754508520946",
-          "splitType": "equal",
-          "groupId": "1754508677236",
-          "date": "2025-08-06T19:52:50.183Z"
-        }
-      ]
-    }
+   
   ],
-  "members": [
-    {
-      "id": "1",
-      "name": "Abhishek",
-      "userId": 1
-    },
-    {
-      "id": "2",
-      "name": "Raj"
-    },
-    {
-      "id": "3",
-      "name": "Sara"
-    }
-  ],
+
   "expenses": [
-    {
-      "id": "1",
-      "groupId": 1,
-      "description": "Hotel Booking",
-      "amount": 6000,
-      "paidBy": 1,
-      "splitType": "equal",
-      "date": "2025-08-06",
-      "splitBetween": [
-        {
-          "memberId": 1,
-          "share": 2000
-        },
-        {
-          "memberId": 2,
-          "share": 2000
-        },
-        {
-          "memberId": 3,
-          "share": 2000
-        }
-      ]
-    },
-    {
-      "id": "2",
-      "groupId": 1,
-      "description": "Dinner",
-      "amount": 1500,
-      "paidBy": 2,
-      "splitType": "unequal",
-      "date": "2025-08-06",
-      "splitBetween": [
-        {
-          "memberId": 1,
-          "share": 500
-        },
-        {
-          "memberId": 2,
-          "share": 700
-        },
-        {
-          "memberId": 3,
-          "share": 300
-        }
-      ]
-    }
+
   ],
   "settlements": [
     {
