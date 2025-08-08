@@ -43,25 +43,23 @@ async function fetchGroups() {
       groupsContainer.innerHTML = `<p class="text-gray-500 col-span-full">You haven't joined any groups yet.</p>`;
       return;
     }
-
+    
     groups.forEach(group => {
+   
+      
       const card = document.createElement('div');
-      card.className = 'bg-white p-5 shadow rounded cursor-pointer hover:bg-gray-50 flex justify-between items-center relative';
+      card.className = 'bg-white p-6 shadow rounded cursor-pointer hover:bg-gray-50 flex justify-between items-center relative';
       card.innerHTML = `         
         <div>
        <h3 class="text-lg font-semibold text-green-700">${group.name}</h3>
           <p class="text-sm text-gray-500">Members: ${group.participants?.length || 0}</p>
-         <p class="text-[12px] text-gray-500 absolute bottom-0 right-6">${group.created || null}</p>
+         <p class="text-[12px] text-gray-500 absolute bottom-0 right-6">${group.created}</p>
           
         </div>
-        <div>
-          <button onclick="event.stopPropagation(); handleDeleteGroup('${group.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest mr-1">Delete</button>
-          
-         <a href="add-expenses.html?groupId=${group.id}" class="btn btn-gradient btn-sm tracking-widest">
-  Add Expense
-</a>
-
-          </div>
+        <div>           
+         <a href="add-expenses.html?groupId=${group.id}" class="btn btn-gradient btn-sm tracking-widest"> Add Expense</a>
+        <button onclick="event.stopPropagation(); handleDeleteGroup('${group.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest ml-1">Delete</button>
+        </div>
   
       `;
       card.addEventListener('click', () => {

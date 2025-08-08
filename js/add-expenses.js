@@ -29,7 +29,7 @@ const API_EXPENSES="http://localhost:3000/expenses";
 const groupName = document.getElementById("group");
 const paidBySelect = document.getElementById("paidBy");
 const form = document.getElementById("expense-form");
-const requiredGroup="";
+let requiredGroup;
 // Extract groupId from URL
 const urlParams = new URLSearchParams(window.location.search);
 console.log(urlParams);
@@ -37,23 +37,15 @@ console.log(urlParams);
 const defaultGroupId = urlParams.get("groupId");
 console.log(defaultGroupId);
 
-//name set krne ke liye input field
-async function loadGroup() {
-    console.log(defaultGroupId);
-    
-  const res = await fetch(API_GROUPS);
-  const groups = await res.json();
- 
-  requiredGroup=groups.filter((group)=> group.id==defaultGroupId);  
-  groupName.value=requiredGroup[0].name
- 
-}
+
 
 //particpants to add in expenses so that choose kr skte kisne pay kiya
 async function loadParticipants() {
   const res = await fetch(`${API_GROUPS}/${defaultGroupId}`);
   const group = await res.json();
-  console.log("group",group);
+  requiredGroup=group;
+   groupName.value=group.name;
+   console.log("group",group);
   
   for (const userName of group.participants) {
     const option = document.createElement("option");
@@ -68,12 +60,22 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const amount = parseFloat(form.amount.value);
+  console.log(amount);
+  
   const paidBy = form.paidBy.value;
-  const splitBetween = group.participants.map(name => ({
-    memberName: name,
-    share: parseFloat((amount / group.participants.length).toFixed(2)) // equal split
-  }));
+  console.log(paidBy);
+  
+  const splitType=form.splitType.value;
 
+  console.log(requiredGroup);
+  
+  const splitBetween = requiredGroup.participants.map(name => ({
+    memberName: name,
+    share: parseFloat((amount / requiredGroup.participants.length).toFixed(2)) // equal split
+  }));
+     
+  console.log(splitBetween);
+  
 
   const expense = {
     id: Date.now().toString(),
@@ -81,8 +83,9 @@ form.addEventListener("submit", async (e) => {
     description: form.title.value,
     amount,
     paidBy,
+    splitType,
     date: new Date().toISOString(),
-    splitType
+    splitBetween
   };
 
   try {
@@ -92,7 +95,64 @@ form.addEventListener("submit", async (e) => {
       body:JSON.stringify(expense)
     });
    if (res.ok) {
-      showToast("Expense added!");
+  showToast("Expense added!");
+
+  // Update settlements and user data
+  for (const entry of splitBetween) {
+    if (entry.memberName === paidBy) continue;
+
+    // 1. Create settlement
+    const settlement = {
+      groupId: defaultGroupId,
+      from: entry.memberName,
+      to: paidBy,
+      amount: entry.share,
+      expenseId: expense.id,
+      date: expense.date,
+    };
+
+    await fetch("http://localhost:3000/settlements", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(settlement)
+    });
+
+    //Update owes for the member who owes
+    const owesRes = await fetch(`${API_USERS}?name=${encodeURIComponent(entry.memberName)}`);
+    const [owesUser] = await owesRes.json();
+    if (owesUser) {
+      const updatedOwes = owesUser.owes || [];
+      updatedOwes.push({
+        to: paidBy,
+        amount: entry.share,
+        expenseId: expense.id,
+        groupId: defaultGroupId
+      });
+
+      await fetch(`${API_USERS}/${owesUser.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ owes: updatedOwes })
+      });
+    }
+    const payerRes = await fetch(`${API_USERS}?name=${encodeURIComponent(paidBy)}`);
+    const [payerUser] = await payerRes.json();
+    if (payerUser) {
+      const updatedOwedBy = payerUser.owedBy || [];
+      updatedOwedBy.push({
+        from: entry.memberName,
+        amount: entry.share,
+        expenseId: expense.id,
+        groupId: defaultGroupId
+      });
+
+      await fetch(`${API_USERS}/${payerUser.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ owedBy: updatedOwedBy })
+      });
+    }
+  }
       //navigate to group page
       window.location.href = `group.html?groupId=${defaultGroupId}`;
     } else {
@@ -112,7 +172,6 @@ logoutBtn.addEventListener('click', () => {
 });
 
 document.addEventListener("DOMContentLoaded",()=>{
-    loadGroup();
     loadParticipants();
 } );
 

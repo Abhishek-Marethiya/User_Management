@@ -1,22 +1,228 @@
 {
   "users": [
-   
+    {
+      "id": "1754601918544",
+      "name": "Abhishek",
+      "email": "abhishekmarethiya98089@gmail.com",
+      "password": "123456",
+      "owes": [],
+      "owedBy": [
+        {
+          "from": "Kuldeep",
+          "amount": 1000,
+          "expenseId": "1754685593716",
+          "groupId": "1754676549976"
+        },
+        {
+          "from": "Digeesha Marethiya",
+          "amount": 1000,
+          "expenseId": "1754685593716",
+          "groupId": "1754676549976"
+        },
+        {
+          "from": "Random Marethiya",
+          "amount": 1000,
+          "expenseId": "1754685593716",
+          "groupId": "1754676549976"
+        }
+      ]
+    },
+    {
+      "id": "1754601918545",
+      "name": "Kuldeep",
+      "email": "kuldeep98089@gmail.com",
+      "password": "123456",
+      "owes": [
+        {
+          "to": "Abhishek",
+          "amount": 1000,
+          "expenseId": "1754685593716",
+          "groupId": "1754676549976"
+        }
+      ]
+    },
+    {
+      "id": "1754601918546",
+      "name": "Digeesha Marethiya",
+      "email": "diggimarethiya98089@gmail.com",
+      "password": "123456",
+      "owes": [
+        {
+          "to": "Abhishek",
+          "amount": 1000,
+          "expenseId": "1754685593716",
+          "groupId": "1754676549976"
+        }
+      ],
+      "owedBy": []
+    },
+    {
+      "id": "1754601918547",
+      "name": "Random Marethiya",
+      "email": "randommarethiya98089@gmail.com",
+      "password": "123456",
+      "owes": [
+        {
+          "to": "Abhishek",
+          "amount": 1000,
+          "expenseId": "1754685593716",
+          "groupId": "1754676549976"
+        }
+      ],
+      "owedBy": []
+    }
   ],
   "groups": [
-   
+    {
+      "id": "1754676549976",
+      "name": "Goa Trip",
+      "participants": [
+        "Abhishek",
+        "Kuldeep",
+        "Digeesha Marethiya",
+        "Random Marethiya"
+      ],
+      "created": "2025-08-08",
+      "lastModified": "2025-08-08"
+    }
   ],
-
   "expenses": [
-
+    {
+      "id": "1754685593716",
+      "groupId": "1754676549976",
+      "description": "BreakFast",
+      "amount": 4000,
+      "paidBy": "Abhishek",
+      "splitType": "equal",
+      "date": "2025-08-08T20:39:53.716Z",
+      "splitBetween": [
+        {
+          "memberName": "Abhishek",
+          "share": 1000
+        },
+        {
+          "memberName": "Kuldeep",
+          "share": 1000
+        },
+        {
+          "memberName": "Digeesha Marethiya",
+          "share": 1000
+        },
+        {
+          "memberName": "Random Marethiya",
+          "share": 1000
+        }
+      ]
+    }
   ],
   "settlements": [
     {
-      "id": "1",
-      "groupId": 1,
-      "from": 2,
-      "to": 1,
-      "amount": 2000,
-      "date": "2025-08-06"
+      "id": "f8ca",
+      "groupId": "1754676549976",
+      "from": "Digeesha Marethiya",
+      "to": "Abhishek",
+      "amount": 1000,
+      "expenseId": null,
+      "date": "2025-08-08T20:23:15.759Z"
+    },
+    {
+      "id": "7c45",
+      "groupId": "1754676549976",
+      "from": "Random Marethiya",
+      "to": "Abhishek",
+      "amount": 1000,
+      "expenseId": null,
+      "date": "2025-08-08T20:23:15.759Z"
+    },
+    {
+      "id": "f77a",
+      "groupId": "1754676549976",
+      "from": "Digeesha Marethiya",
+      "to": "Abhishek",
+      "amount": 1000,
+      "expenseId": null,
+      "date": "2025-08-08T20:30:12.156Z"
+    },
+    {
+      "id": "1d32",
+      "groupId": "1754676549976",
+      "from": "Random Marethiya",
+      "to": "Abhishek",
+      "amount": 1000,
+      "expenseId": null,
+      "date": "2025-08-08T20:30:12.156Z"
+    },
+    {
+      "id": "e9d8",
+      "groupId": "1754676549976",
+      "from": "Kuldeep",
+      "to": "Abhishek",
+      "amount": 1000,
+      "expenseId": null,
+      "date": "2025-08-08T20:36:17.792Z"
+    },
+    {
+      "id": "c48a",
+      "groupId": "1754676549976",
+      "from": "Digeesha Marethiya",
+      "to": "Abhishek",
+      "amount": 1000,
+      "expenseId": null,
+      "date": "2025-08-08T20:36:17.792Z"
+    },
+    {
+      "id": "6062",
+      "groupId": "1754676549976",
+      "from": "Random Marethiya",
+      "to": "Abhishek",
+      "amount": 1000,
+      "expenseId": null,
+      "date": "2025-08-08T20:36:17.792Z"
+    },
+    {
+      "id": "3d06",
+      "groupId": "1754676549976",
+      "from": "Kuldeep",
+      "to": "Abhishek",
+      "amount": 10000,
+      "expenseId": null,
+      "date": "2025-08-08T20:37:35.899Z"
+    },
+    {
+      "id": "1f45",
+      "groupId": "1754676549976",
+      "from": "Digeesha Marethiya",
+      "to": "Abhishek",
+      "amount": 10000,
+      "expenseId": null,
+      "date": "2025-08-08T20:37:35.899Z"
+    },
+    {
+      "id": "3e81",
+      "groupId": "1754676549976",
+      "from": "Kuldeep",
+      "to": "Abhishek",
+      "amount": 1000,
+      "expenseId": "1754685593716",
+      "date": "2025-08-08T20:39:53.716Z"
+    },
+    {
+      "id": "ebbe",
+      "groupId": "1754676549976",
+      "from": "Digeesha Marethiya",
+      "to": "Abhishek",
+      "amount": 1000,
+      "expenseId": "1754685593716",
+      "date": "2025-08-08T20:39:53.716Z"
+    },
+    {
+      "id": "5726",
+      "groupId": "1754676549976",
+      "from": "Random Marethiya",
+      "to": "Abhishek",
+      "amount": 1000,
+      "expenseId": "1754685593716",
+      "date": "2025-08-08T20:39:53.716Z"
     }
   ]
 }

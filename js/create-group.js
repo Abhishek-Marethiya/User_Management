@@ -29,13 +29,18 @@ function showToast(message, type = "success") {
 }
 // Fetch users to show as participants
 async function loadUsers() {
+  // console.log("ok");
+  
     try {
         const res = await fetch(API_USERS);
         const users = await res.json();
+console.log(users);
 
         users.forEach(user => {
             const checkbox = document.createElement("div");
             checkbox.className = "flex items-center";
+            console.log(user.id,loggedInuser);
+            
             const nameClass = user.id === loggedInuser.id ? "text-green-600 font-semibold" : "";            checkbox.innerHTML = `
               <input type="checkbox" id="user-${user.id}" value="${user.id}" class="mr-2">
               <label for="user-${user.id}" class="${nameClass}">${user.name}</label>
@@ -71,7 +76,8 @@ form.addEventListener("submit", async (e) => {
 
     const participantNames = Array.from(checked).map(input => {
         const userId=parseInt(input.value);
-        const user=allUsers.find(u=>u.id===userId);
+        
+        const user=allUsers.find(u=>u.id==userId); // ek number h aur ek string so type check ni kr wayenge...bs value check krwa lenge
         return user?.name || "";
     });
     console.log(participantNames);
@@ -85,8 +91,8 @@ form.addEventListener("submit", async (e) => {
         id:Date.now().toString(),
         name: groupName,
         participants: participantNames,
-        created: new Date().toISOString(),
-        lastModified: new Date().toISOString(), 
+        created: new Date().toISOString().split('T')[0],
+        lastModified: new Date().toISOString().split('T')[0]
     };
 
     try {

@@ -6,7 +6,7 @@ if (!user) {
 
 const API_USERS = "http://localhost:3000/users";
 const form = document.getElementById("add-member-form");
-
+const logoutBtn = document.getElementById('logout-btn');
 
 function showToast(message, type = "success") {
   const toastContainer = document.getElementById("toast-container");
@@ -25,12 +25,13 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
-const logoutBtn = document.getElementById('logout-btn');
 // Logout logic
 logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('user');
   window.location.href = 'index.html';
 });
+
+
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
