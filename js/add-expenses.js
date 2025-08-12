@@ -6,6 +6,7 @@ if (!user) {
 const usernameSpan = document.getElementById('username');
 usernameSpan.textContent = user.name;
 
+
 // console.log(user);
 
 function showToast(message, type = "success") {

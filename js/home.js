@@ -83,22 +83,84 @@ logoutBtn.addEventListener('click', () => {
 });
 
 
-async function handleDeleteGroup(id) {
-try{
- console.log(id);
-        const res = await fetch(`${API_BASE}/groups/${id}`,{
-              method: "DELETE",
-               headers: {
-            "Content-Type": "application/json"
-        },
-        });
-   if(res.ok)
-    showToast("Group Deleted Successfully!","success")
-}
-catch (err) {
-    console.error('Failed to delete group:', err);
-    showToast("Failed to delete group!","error")
+
+async function handleDeleteExpense(expenseId) {
+  try {
+    
+    const expenseRes = await fetch(`${API_EXPENSES}/${expenseId}`);
+    if (!expenseRes.ok) throw new Error("Expense not found");
+    const expense = await expenseRes.json();
+
+    for (const participant of expense.splitBetween) {
+      if (participant.memberName !== expense.paidBy) {
+
+        // --- Update the owes array for this participant ---
+        await adjustUserOwes(participant.memberName, expense.paidBy, -participant.share, expense.groupId);
+
+        // --- Update the owedBy array for the paidBy user ---
+        await adjustUserOwedBy(expense.paidBy, participant.memberName, -participant.share, expense.groupId);
+      }
+    }
+
+    const deleteRes = await fetch(`${API_EXPENSES}/${expenseId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" }
+    });
+
+    if (deleteRes.ok) {
+      showToast(`Expense "${expense.description}" deleted successfully.`);
+      fetchGroupExpenses(); // Refresh list
+      loadGroupOwesSummary(); // Refresh debts
+    } else {
+      showToast("Failed to delete expense", "error");
+    }
+
+  } catch (err) {
+    console.error("Error deleting expense:", err);
+    showToast("An error occurred.");
   }
+}
+
+async function adjustUserOwes(userName, toUserName, amountDelta, groupId) {
+  const userRes = await fetch(`${API_USERS}?name=${encodeURIComponent(userName)}`);
+  const user = (await userRes.json())[0];
+  if (!user) return;
+
+  if (!Array.isArray(user.owes)) user.owes = [];
+
+  const owesEntry = user.owes.find(o => o.to === toUserName && o.groupId === groupId);
+  if (owesEntry) {
+    owesEntry.amount = Math.max(0, owesEntry.amount + amountDelta);
+  } else if (amountDelta > 0) {
+    user.owes.push({ to: toUserName, amount: amountDelta, groupId });
+  }
+
+  await fetch(`${API_USERS}/${user.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ owes: user.owes })
+  });
+}
+
+async function adjustUserOwedBy(userName, fromUserName, amountDelta, groupId) {
+  const userRes = await fetch(`${API_USERS}?name=${encodeURIComponent(userName)}`);
+  const user = (await userRes.json())[0];
+  if (!user) return;
+
+  if (!Array.isArray(user.owedBy)) user.owedBy = [];
+
+  const owedByEntry = user.owedBy.find(o => o.from === fromUserName && o.groupId === groupId);
+  if (owedByEntry) {
+    owedByEntry.amount = Math.max(0, owedByEntry.amount + amountDelta);
+  } else if (amountDelta > 0) {
+    user.owedBy.push({ from: fromUserName, amount: amountDelta, groupId });
+  }
+
+  await fetch(`${API_USERS}/${user.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ owedBy: user.owedBy })
+  });
 }
 
 

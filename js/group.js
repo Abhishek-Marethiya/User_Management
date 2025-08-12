@@ -44,71 +44,98 @@ function showToast(message, type = "success") {
 }
 
 
-async function handleDeleteExpense(expenseId){
 
+
+
+async function handleDeleteExpense(expenseId) {
   try {
-    
-    const res = await fetch(`${API_EXPENSES}/${expenseId}`, {
+    const expenseRes = await fetch(`${API_EXPENSES}/${expenseId}`);
+    if (!expenseRes.ok) throw new Error("Expense not found");
+    const expense = await expenseRes.json();
+
+    for (const participant of expense.splitBetween) {
+      if (participant.memberName !== expense.paidBy) {
+
+        // --- Update the owes array for this participant ---
+        await adjustUserOwes(participant.memberName, expense.paidBy, -participant.share, expense.groupId);
+
+        // --- Update the owedBy array for the paidBy user ---
+        await adjustUserOwedBy(expense.paidBy, participant.memberName, -participant.share, expense.groupId);
+      }
+    }
+
+    const deleteRes = await fetch(`${API_EXPENSES}/${expenseId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" }
     });
-   const expense= await res.json();
-   console.log(expense);
-   
-    if (res.ok) {
-      showToast(`Expense "${expense.name}" deleted successfully.`);
+
+    if (deleteRes.ok) {
+      showToast(`Expense "${expense.description}" deleted successfully.`);
+      fetchGroupExpenses(); // Refresh list
+      loadGroupOwesSummary(); // Refresh debts
     } else {
-      showToast("Failed to update group.");
+      showToast("Failed to delete expense", "error");
     }
+
   } catch (err) {
     console.error("Error deleting expense:", err);
     showToast("An error occurred.");
   }
 }
 
+async function adjustUserOwes(userName, toUserName, amountDelta, groupId) {
+  const userRes = await fetch(`${API_USERS}?name=${encodeURIComponent(userName)}`);
+  const user = (await userRes.json())[0];
+  if (!user) return;
 
-async function handleEditExpense(expenseId) {
+  if (!Array.isArray(user.owes)) user.owes = [];
+
+  const owesEntry = user.owes.find(o => o.to === toUserName && o.groupId === groupId);
+  if (owesEntry) {
+    owesEntry.amount = Math.max(0, owesEntry.amount + amountDelta);
+  } else if (amountDelta > 0) {
+    user.owes.push({ to: toUserName, amount: amountDelta, groupId });
+  }
+
+  await fetch(`${API_USERS}/${user.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ owes: user.owes })
+  });
+}
+
+async function adjustUserOwedBy(userName, fromUserName, amountDelta, groupId) {
+  const userRes = await fetch(`${API_USERS}?name=${encodeURIComponent(userName)}`);
+  const user = (await userRes.json())[0];
+  if (!user) return;
+
+  if (!Array.isArray(user.owedBy)) user.owedBy = [];
+
+  const owedByEntry = user.owedBy.find(o => o.from === fromUserName && o.groupId === groupId);
+  if (owedByEntry) {
+    owedByEntry.amount = Math.max(0, owedByEntry.amount + amountDelta);
+  } else if (amountDelta > 0) {
+    user.owedBy.push({ from: fromUserName, amount: amountDelta, groupId });
+  }
+
+  await fetch(`${API_USERS}/${user.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ owedBy: user.owedBy })
+  });
+}
+
+
+
+
+ function handleEditExpense(expenseId) {
+  console.log(expenseId);
   
-  window.location.href=`edit-expenses.html?expenseId=${expenseId}`;
+  // window.location.href=`add-expenses.html?editExpenseId=${expenseId}`;
       
 
 
 }
-
-async function editExpense(expenseId) {
-  try {
-    const res = await fetch(`${API_EXPENSES}/${expenseId}`);
-    const expense = await res.json();
-
-    // Save expense ID in a hidden field so submit knows it's an update
-    document.getElementById("editExpenseId").value = expense.id;
-
-    // Prefill form fields
-    document.getElementById("amount").value = expense.amount;
-    document.getElementById("description").value = expense.description;
-    document.getElementById("date").value = expense.date;
-    document.getElementById("payer").value = expense.payer;
-
-    // If you have participants checkboxes
-    if (Array.isArray(expense.splitBetween)) {
-      document.querySelectorAll("input[name='participants']").forEach(cb => {
-        cb.checked = expense.splitBetween.includes(cb.value);
-      });
-    }
-
-    // Change button text
-    document.getElementById("submitBtn").textContent = "Update Expense";
-
-    // Scroll to form
-    document.getElementById("addExpenseForm").scrollIntoView({ behavior: "smooth" });
-
-  } catch (err) {
-    console.error("Error loading expense:", err);
-    showToast("Error loading expense for edit", "error");
-  }
-}
-
-
 
 // Fetch saare expenses of a group 
 async function fetchGroupExpenses() {
@@ -184,21 +211,20 @@ div.innerHTML = `
     ${expense.paidBy}
   </div>
   <div>
-  <button 
-  class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 tracking-widest"
-  onclick="editExpense('${expense.id}')">
-  Edit
-</button>
+
   <button onclick="event.stopPropagation(); handleDeleteExpense('${expense.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest w-[80px]">
     Delete
   </button>
   </div>
 
-`;
+`; 
+//  <button 
+//   class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 tracking-widest"
+//   onclick="handleEditExpense('${expense.id}')">
+//   Edit
+// </button>
 
-  // <button onclick="event.stopPropagation(); handleEditExpense('${expense.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest w-[80px]">
-    //  Edit
-    // </button>
+
       div.addEventListener('click',()=>{
         window.location.href=`expenseDetail.html?expenseId=${expense.id}`
       })
