@@ -81,7 +81,7 @@
     
   <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
 
-    <div class="flex items-center space-x-4 cursor-pointer" onclick="window.location.href='addexpenses.html'">
+    <div class="flex items-center space-x-4 cursor-pointer" onclick="window.location.href='home.html'">
     <div class="logo bg-white/20 backdrop-blur-sm rounded-full" >
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -105,7 +105,8 @@
       </button>
     </div>
   </div>
-</header>
+    </header>
+    
 <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2"></div>
   
   <h2 id="group-name" class="text-2xl font-bold text-gray-800 mb-2 text-[2rem] font-bold text-black-600 text-center mt-8">Group Name</h2>
@@ -128,9 +129,14 @@
   Add Expense
 </a>
 </div>
-     
   </main>
+    <main class="p-6 max-w-4xl mx-auto bg-white rounded shadow mt-6 relative">
 
+  <div id="showAllExpensesDetail">
+           <h3 class="text-lg font-bold text-gray-700 mb-2 tracking-[.1em]">Expenses Details</h3>
+
+    </div>
+    </main>
   <script src="js/group.js"></script>
 </body>
 </html>

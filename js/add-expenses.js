@@ -3,6 +3,10 @@ if (!user) {
   alert("You're not logged in!");
   window.location.href = 'index.html';
 }
+const usernameSpan = document.getElementById('username');
+usernameSpan.textContent = user.name;
+
+// console.log(user);
 
 function showToast(message, type = "success") {
   const toastContainer = document.getElementById("toast-container");
@@ -29,7 +33,10 @@ const API_EXPENSES="http://localhost:3000/expenses";
 const groupName = document.getElementById("group");
 const paidBySelect = document.getElementById("paidBy");
 const form = document.getElementById("expense-form");
+const splitBetween = document.getElementById("participants-list");
+const checked = document.querySelectorAll("#participants-list input:checked");
 let requiredGroup;
+
 // Extract groupId from URL
 const urlParams = new URLSearchParams(window.location.search);
 console.log(urlParams);
@@ -38,16 +45,22 @@ const defaultGroupId = urlParams.get("groupId");
 console.log(defaultGroupId);
 
 
+let checkedValue = [];
 
-//particpants to add in expenses so that choose kr skte kisne pay kiya
-async function loadParticipants() {
-  const res = await fetch(`${API_GROUPS}/${defaultGroupId}`);
-  const group = await res.json();
-  requiredGroup=group;
-   groupName.value=group.name;
-   console.log("group",group);
-  
-  for (const userName of group.participants) {
+function handleChange(checkbox) {
+  const value = checkbox.value;
+ 
+  if (checkbox.checked) {
+    if (!checkedValue.includes(value)) {
+      checkedValue.push(value);
+    }
+  } else {
+    checkedValue = checkedValue.filter(v => v !== value);
+  }
+   
+  console.log("Checked members:", checkedValue);
+    paidBySelect.innerHTML = "";
+    for (const userName of checkedValue) {
     const option = document.createElement("option");
     option.value = userName;
     option.textContent = userName;
@@ -55,27 +68,50 @@ async function loadParticipants() {
   }
 }
 
+async function loadUsers() {
+  
+  try {
+    const res = await fetch(`${API_GROUPS}/${defaultGroupId}`);
+    const group = await res.json();
+  requiredGroup=group;
+   groupName.value=group.name;
+    group.participants.forEach(user => {
+      const checkboxDiv = document.createElement("div");
+      checkboxDiv.className = "flex items-center";
+
+      checkboxDiv.innerHTML = `
+        <input 
+          type="checkbox" 
+          id="user-${user}" 
+          value="${user}" 
+          class="mr-2" 
+          onchange="handleChange(this)">
+        <label for="user-${user}">${user}</label>
+      `;
+
+      splitBetween.appendChild(checkboxDiv);
+    });
+
+  } catch (err) {
+    console.error("Error loading users", err);
+  }
+}
+
+
 // Handle form submit
+
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const amount = parseFloat(form.amount.value);
-  console.log(amount);
-  
   const paidBy = form.paidBy.value;
-  console.log(paidBy);
-  
-  const splitType=form.splitType.value;
+  const splitType = form.splitType.value;
 
-  console.log(requiredGroup);
-  
-  const splitBetween = requiredGroup.participants.map(name => ({
+  const splitBetween = checkedValue.map(name => ({
     memberName: name,
-    share: parseFloat((amount / requiredGroup.participants.length).toFixed(2)) // equal split
+    share: parseFloat((amount / checkedValue.length).toFixed(2))
   }));
-     
-  console.log(splitBetween);
-  
 
   const expense = {
     id: Date.now().toString(),
@@ -89,71 +125,114 @@ form.addEventListener("submit", async (e) => {
   };
 
   try {
-    const res=await fetch(API_EXPENSES,{
-      method:"POST",
-      headers: { "Content-Type": "application/json" },
-      body:JSON.stringify(expense)
-    });
-   if (res.ok) {
-  showToast("Expense added!");
-
-  // Update settlements and user data
-  for (const entry of splitBetween) {
-    if (entry.memberName === paidBy) continue;
-
-    // 1. Create settlement
-    const settlement = {
-      groupId: defaultGroupId,
-      from: entry.memberName,
-      to: paidBy,
-      amount: entry.share,
-      expenseId: expense.id,
-      date: expense.date,
-    };
-
-    await fetch("http://localhost:3000/settlements", {
+    const res = await fetch(API_EXPENSES, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(settlement)
+      body: JSON.stringify(expense)
     });
 
-    //Update owes for the member who owes
-    const owesRes = await fetch(`${API_USERS}?name=${encodeURIComponent(entry.memberName)}`);
-    const [owesUser] = await owesRes.json();
-    if (owesUser) {
-      const updatedOwes = owesUser.owes || [];
-      updatedOwes.push({
-        to: paidBy,
-        amount: entry.share,
-        expenseId: expense.id,
-        groupId: defaultGroupId
-      });
+    if (res.ok) {
+      showToast("Expense added!");
 
-      await fetch(`${API_USERS}/${owesUser.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ owes: updatedOwes })
-      });
-    }
-    const payerRes = await fetch(`${API_USERS}?name=${encodeURIComponent(paidBy)}`);
-    const [payerUser] = await payerRes.json();
-    if (payerUser) {
-      const updatedOwedBy = payerUser.owedBy || [];
-      updatedOwedBy.push({
-        from: entry.memberName,
-        amount: entry.share,
-        expenseId: expense.id,
-        groupId: defaultGroupId
-      });
+      for (const entry of splitBetween) {
+        if (entry.memberName === paidBy) continue;
 
-      await fetch(`${API_USERS}/${payerUser.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ owedBy: updatedOwedBy })
-      });
-    }
-  }
-      //navigate to group page
+        // --- Create settlement ---
+        await fetch("http://localhost:3000/settlements", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            groupId: defaultGroupId,
+            from: entry.memberName,
+            to: paidBy,
+            amount: entry.share,
+            expenseId: expense.id,
+            date: expense.date,
+          })
+        });
+
+        // --- Update owes for the member ---
+        const owesRes = await fetch(`${API_USERS}?name=${encodeURIComponent(entry.memberName)}`);
+        const [owesUser] = await owesRes.json();
+        if (owesUser) {
+          const updatedOwes = owesUser.owes || [];
+          updatedOwes.push({
+            to: paidBy,
+            amount: entry.share,
+            expenseId: expense.id,
+            groupId: defaultGroupId
+          });
+
+          // --- Netting: remove mutual debts ---
+          for (let i = updatedOwes.length - 1; i >= 0; i--) {
+            const owe = updatedOwes[i];
+            const reverseDebt = (owesUser.owedBy || []).find(d => d.from === owe.to && d.amount > 0);
+            if (reverseDebt) {
+              if (owe.amount > reverseDebt.amount) {
+                owe.amount -= reverseDebt.amount;
+                reverseDebt.amount = 0;
+              } else if (owe.amount < reverseDebt.amount) {
+                reverseDebt.amount -= owe.amount;
+                owe.amount = 0;
+              } else {
+                owe.amount = 0;
+                reverseDebt.amount = 0;
+              }
+            }
+          }
+
+          // Remove zero-amount entries
+          owesUser.owes = (updatedOwes).filter(d => d.amount > 0);
+          owesUser.owedBy = (owesUser.owedBy || []).filter(d => d.amount > 0);
+
+          await fetch(`${API_USERS}/${owesUser.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ owes: owesUser.owes, owedBy: owesUser.owedBy })
+          });
+        }
+
+        // --- Update owedBy for the payer ---
+        const payerRes = await fetch(`${API_USERS}?name=${encodeURIComponent(paidBy)}`);
+        const [payerUser] = await payerRes.json();
+        if (payerUser) {
+          const updatedOwedBy = payerUser.owedBy || [];
+          updatedOwedBy.push({
+            from: entry.memberName,
+            amount: entry.share,
+            expenseId: expense.id,
+            groupId: defaultGroupId
+          });
+
+          // --- Netting on payer side ---
+          for (let i = updatedOwedBy.length - 1; i >= 0; i--) {
+            const owedByEntry = updatedOwedBy[i];
+            const reverseDebt = (payerUser.owes || []).find(d => d.to === owedByEntry.from && d.amount > 0);
+            if (reverseDebt) {
+              if (owedByEntry.amount > reverseDebt.amount) {
+                owedByEntry.amount -= reverseDebt.amount;
+                reverseDebt.amount = 0;
+              } else if (owedByEntry.amount < reverseDebt.amount) {
+                reverseDebt.amount -= owedByEntry.amount;
+                owedByEntry.amount = 0;
+              } else {
+                owedByEntry.amount = 0;
+                reverseDebt.amount = 0;
+              }
+            }
+          }
+
+          payerUser.owedBy = updatedOwedBy.filter(d => d.amount > 0);
+          payerUser.owes = (payerUser.owes || []).filter(d => d.amount > 0);
+
+          await fetch(`${API_USERS}/${payerUser.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ owes: payerUser.owes, owedBy: payerUser.owedBy })
+          });
+        }
+      }
+
       window.location.href = `group.html?groupId=${defaultGroupId}`;
     } else {
       showToast("Failed to add expense", "error");
@@ -164,6 +243,7 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
+
 const logoutBtn = document.getElementById('logout-btn');
 // Logout logic
 logoutBtn.addEventListener('click', () => {
@@ -172,7 +252,7 @@ logoutBtn.addEventListener('click', () => {
 });
 
 document.addEventListener("DOMContentLoaded",()=>{
-    loadParticipants();
+    // loadParticipants();
+    loadUsers();
 } );
-
 

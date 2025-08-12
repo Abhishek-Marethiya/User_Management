@@ -59,7 +59,7 @@ async function loadExpense() {
         .filter(e => e.memberName !== expense.paidBy)
         .map(entry => {
           return `
-            <div class="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-center p-3 bg-yellow-50 mb-1 border border-yellow-200 rounded-lg">
               <span class="text-gray-800">${entry.memberName} owes ${expense.paidBy} ₹${entry.share.toFixed(2)}</span>
             </div>
           `;

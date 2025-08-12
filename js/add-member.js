@@ -25,13 +25,6 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
-// Logout logic
-logoutBtn.addEventListener('click', () => {
-  localStorage.removeItem('user');
-  window.location.href = 'index.html';
-});
-
-
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -70,3 +63,9 @@ form.addEventListener("submit", async (e) => {
     }
 });
 
+// Logout logic
+
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('user');
+  window.location.href = 'index.html';
+});

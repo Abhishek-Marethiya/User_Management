@@ -1,6 +1,6 @@
-// home.js
 
 const API_BASE = 'http://localhost:3000';
+const API_USERS='http://localhost:3000/users'
 const usernameSpan = document.getElementById('username');
 const groupsContainer = document.getElementById('groups-container');
 
@@ -100,3 +100,61 @@ catch (err) {
     showToast("Failed to delete group!","error")
   }
 }
+
+
+// overall expenses......
+async function loadOverallOwesSummary() {
+  try {
+    const res = await fetch(API_USERS);
+    const users = await res.json();
+
+    const currentUser = users.find(u => u.id === user.id);
+    if (!currentUser) return;
+
+    const netMap = {};
+
+    currentUser.owes?.forEach(o => {
+      const key = o.to;
+      netMap[key] = (netMap[key] || 0) - Number(o.amount);
+    });
+
+    currentUser.owedBy?.forEach(o => {
+      const key = o.from;
+      netMap[key] = (netMap[key] || 0) + Number(o.amount);
+    });
+
+    let owesHTML = '<h4 class="font-semibold text-red-600 mb-2">You Owe</h4><ul class="list-disc pl-5">';
+    let owedByHTML = '<h4 class="font-semibold text-green-600 mb-2">Owed to You</h4><ul class="list-disc pl-5">';
+    let owesTotal = 0;
+    let owedByTotal = 0;
+
+    Object.entries(netMap).forEach(([name, amount]) => {
+      if (amount < 0) {
+        owesHTML += `<li>You owe <strong>${name}</strong> ₹${Math.abs(amount).toFixed(2)}</li>`;
+        owesTotal += Math.abs(amount);
+      } else if (amount > 0) {
+        owedByHTML += `<li><strong>${name}</strong> owes you ₹${amount.toFixed(2)}</li>`;
+        owedByTotal += amount;
+      }
+    });
+
+    owesHTML += `</ul><p class="mt-1 text-m text-red-900 font-bold mt-2">Total: ₹${owesTotal.toFixed(2)}</p>`;
+    owedByHTML += `</ul><p class="mt-1 text-m font-bold text-green-900 mt-2">Total: ₹${owedByTotal.toFixed(2)}</p>`;
+
+    const container = document.getElementById("showAllExpensesDetail");
+    container.innerHTML = `
+      <h3 class="text-lg font-bold text-gray-700 mb-2">Overall Balance</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="bg-red-50 p-3 rounded shadow">${owesHTML}</div>
+        <div class="bg-green-50 p-3 rounded shadow">${owedByHTML}</div>
+      </div>
+    `;
+
+  } catch (err) {
+    console.error('Error loading overall owes summary:', err);
+    document.getElementById("showAllExpensesDetail").innerHTML =
+      `<p class="text-red-500">Error loading data.</p>`;
+  }
+}
+
+loadOverallOwesSummary();

@@ -1,8 +1,10 @@
-const user = JSON.parse(localStorage.getItem('user'));   // logged in user detail..
-if (!user) {
+const loggedInuser = JSON.parse(localStorage.getItem('user'));   // logged in user detail..
+if (!loggedInuser) {
   alert("You're not logged in!");
   window.location.href = 'index.html';
 }
+
+
 const API_GROUPS = "http://localhost:3000/groups";
 const API_EXPENSES="http://localhost:3000/expenses";
 const urlParams = new URLSearchParams(window.location.search);
@@ -15,13 +17,14 @@ console.log("groupId from parameter....",selectedGroupId);
 
 
 const usernameSpan = document.getElementById('username');
-usernameSpan.textContent = user.name;
+usernameSpan.textContent = loggedInuser.name;
 const groupNameEl = document.getElementById("group-name");
 const groupTotalEl = document.getElementById("group-total");
 const expenseList = document.getElementById("expensesList");
 const expensesHeader=document.getElementById("expensesheader");
-
+const showAllExpensesDetail=document.getElementById("showAllExpensesDetail");
 let groupData = null;
+let nameClass=null;
 
 function showToast(message, type = "success") {
   const toastContainer = document.getElementById("toast-container");
@@ -50,6 +53,8 @@ async function handleDeleteExpense(expenseId){
       headers: { "Content-Type": "application/json" }
     });
    const expense= await res.json();
+   console.log(expense);
+   
     if (res.ok) {
       showToast(`Expense "${expense.name}" deleted successfully.`);
     } else {
@@ -58,6 +63,48 @@ async function handleDeleteExpense(expenseId){
   } catch (err) {
     console.error("Error deleting expense:", err);
     showToast("An error occurred.");
+  }
+}
+
+
+async function handleEditExpense(expenseId) {
+  
+  window.location.href=`edit-expenses.html?expenseId=${expenseId}`;
+      
+
+
+}
+
+async function editExpense(expenseId) {
+  try {
+    const res = await fetch(`${API_EXPENSES}/${expenseId}`);
+    const expense = await res.json();
+
+    // Save expense ID in a hidden field so submit knows it's an update
+    document.getElementById("editExpenseId").value = expense.id;
+
+    // Prefill form fields
+    document.getElementById("amount").value = expense.amount;
+    document.getElementById("description").value = expense.description;
+    document.getElementById("date").value = expense.date;
+    document.getElementById("payer").value = expense.payer;
+
+    // If you have participants checkboxes
+    if (Array.isArray(expense.splitBetween)) {
+      document.querySelectorAll("input[name='participants']").forEach(cb => {
+        cb.checked = expense.splitBetween.includes(cb.value);
+      });
+    }
+
+    // Change button text
+    document.getElementById("submitBtn").textContent = "Update Expense";
+
+    // Scroll to form
+    document.getElementById("addExpenseForm").scrollIntoView({ behavior: "smooth" });
+
+  } catch (err) {
+    console.error("Error loading expense:", err);
+    showToast("Error loading expense for edit", "error");
   }
 }
 
@@ -114,7 +161,7 @@ return;
   <div class="w-[200px]">Expense Name</div>
   <div class="w-[100px]">Amount</div>
   <div class="w-[150px]">Paid By</div>
-  <div class="w-[80px]"></div> <!-- for delete button -->
+  <div class="w-[80px]"></div>
 `;
 
 expensesHeader.appendChild(header);
@@ -136,11 +183,22 @@ div.innerHTML = `
   <div class="w-[150px] text-gray-700 ml-2 truncate">
     ${expense.paidBy}
   </div>
+  <div>
+  <button 
+  class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 tracking-widest"
+  onclick="editExpense('${expense.id}')">
+  Edit
+</button>
   <button onclick="event.stopPropagation(); handleDeleteExpense('${expense.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest w-[80px]">
     Delete
   </button>
+  </div>
+
 `;
 
+  // <button onclick="event.stopPropagation(); handleEditExpense('${expense.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest w-[80px]">
+    //  Edit
+    // </button>
       div.addEventListener('click',()=>{
         window.location.href=`expenseDetail.html?expenseId=${expense.id}`
       })
@@ -151,17 +209,92 @@ div.innerHTML = `
 
 }
 
+
+//all expenses details
+const API_USERS = 'http://localhost:3000/users';
+
+const params = new URLSearchParams(window.location.search);
+const groupId = params.get('groupId');
+async function loadGroupOwesSummary() {
+  try {
+    const res = await fetch(API_USERS);
+    const users = await res.json();
+
+    const owesMap = {};
+
+    users.forEach(user => {
+      if (Array.isArray(user.owes)) {
+        user.owes
+          .filter(o => o.groupId === groupId && o.amount > 0)
+          .forEach(o => {
+            const key = `${user.name}->${o.to}`;
+            owesMap[key] = (owesMap[key] || 0) + Number(o.amount);
+          });
+      }
+    });
+
+    if (Object.keys(owesMap).length === 0) {
+      showAllExpensesDetail.innerHTML += `<p class="text-gray-500">No debts found for this group.</p>`;
+      return;
+    }
+
+    let html = '<ul class="list-disc pl-5 space-y-1">';
+    for (const [key, amount] of Object.entries(owesMap)) {
+      const [owesName, owedToName] = key.split('->');
+
+      // Default colors
+      let owesClass = "";
+      let owedToClass = "";
+
+      // Agar logged in user paisa de raha hai
+      if (owesName === loggedInuser.name) {
+        owesClass = "text-red-600 font-semibold";
+      }
+
+      // Agar logged in user paisa le raha hai
+      if (owedToName === loggedInuser.name) {
+        owedToClass = "text-green-600 font-semibold";
+      }
+
+      html += `
+        <li>
+          <span class="${owesClass}">${owesName}</span> owes 
+          <span class="${owedToClass}">${owedToName}</span> 
+          ₹${amount.toFixed(2)}
+        </li>`;
+    }
+    html += '</ul>';
+
+    showAllExpensesDetail.innerHTML += html;
+
+  } catch (err) {
+    console.error('Error loading group owes summary:', err);
+    showAllExpensesDetail.innerHTML += `<p class="text-red-500">Error loading data.</p>`;
+  }
+}
+
+
+
+
+
+
+
 const logoutBtn = document.getElementById('logout-btn');
-// Logout logic
+//Logout logic
 logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('user');
   window.location.href = 'index.html';
 });
 
-
 const handleAddExpenses=document.getElementById("addExpenses");
+
 handleAddExpenses.addEventListener('click',()=>{
   window.location.href=`add-expenses.html?groupId=${selectedGroupId}`
 })
 
-fetchGroupExpenses();
+
+document.addEventListener("DOMContentLoaded",()=>{
+  fetchGroupExpenses();
+  loadGroupOwesSummary();
+});
+
