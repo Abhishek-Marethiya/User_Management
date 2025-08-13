@@ -9,7 +9,11 @@ const API_GROUPS = "http://localhost:3000/groups";
 
 const form = document.getElementById("create-group-form");
 const participantsContainer = document.getElementById("participants-list");
+const usernameSpan = document.getElementById('username');
+usernameSpan.textContent = user.name;
+
 const loggedInuser = JSON.parse(localStorage.getItem('user')); 
+
 
 function showToast(message, type = "success") {
   const toastContainer = document.getElementById("toast-container");

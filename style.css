@@ -125,7 +125,12 @@ body {
   justify-content: center;
   color: white;
 }
-
+.showAllMembersModal{
+backdrop-filter: blur(6px); /* Blur effect */
+  -webkit-backdrop-filter: blur(6px); /* Safari support */
+  background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent dark layer */
+  transition: opacity 0.3s ease;
+}
 .app-title {
   font-size: 1.25rem;
   font-weight: 700;

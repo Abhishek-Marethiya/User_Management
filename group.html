@@ -76,7 +76,7 @@
         .animate-slideIn { animation: slideIn 0.3s ease-out; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-purple-50 to-green-50 min-h-screen">
+<body class="bg-gradient-to-br from-purple-50 to-green-50 min-h-screen relative">
     <header class="bg-white shadow-md py-4 transition-smooth">
     
   <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
@@ -105,10 +105,18 @@
     </header>
     
 <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2"></div>
-  
+ <div class="showAllMembersModal p-2 min-w-[300px] min-h-screen rounded shadow mt-6 absolute z-50 left-[-500px] top-[50px]">
+      <!-- <button id="closeModal" onclick="handleCloseModal()"
+              class="px-4 py-[6.5px] rounded-md border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-smooth absolute right-2 top-2">
+        Close
+      </button> -->
+ </div> 
   <h2 id="group-name" class="text-2xl font-bold text-gray-800 mb-2 text-[2rem] font-bold text-black-600 text-center mt-8">Group Name</h2>
   <main class="p-6 max-w-4xl mx-auto bg-white rounded shadow mt-6 relative">
-    <h3 class="text-lg font-bold text-gray-700 mb-2 tracking-[.1em]">Expenses</h3>
+    <div class="flex justify-between">
+  <h3 class="text-lg font-bold text-gray-700 mb-2 tracking-[.1em]">Expenses</h3>
+    <a onclick="handleAddMember()" class="btn text-sm text-blue-600 ">➕ Add Member</a>
+    </div>
        <hr class="mb-2">
        <div id="expensesheader">
 
@@ -126,7 +134,11 @@
   Add Expense
 </a>
 </div>
+  <button onclick="showAllMemebers()" class="btn btn-sm btn-gradient bg-yellow-500  btn-delete mt-8">
+    All Members
+  </button>
   </main>
+  
     <main class="p-6 max-w-4xl mx-auto bg-white rounded shadow mt-6 relative">
 
   <div id="showAllExpensesDetail">

@@ -5,21 +5,9 @@
       "name": "Abhishek Marethiya",
       "email": "abhishekmarethiya98089@gmail.com",
       "password": "123456",
-      "owes": [
-        {
-          "to": "Kuldeep",
-          "amount": 0,
-          "expenseId": "1755021427607",
-          "groupId": "1755010292238"
-        }
-      ],
+      "owes": [],
       "owedBy": [
-        {
-          "from": "XYZ",
-          "amount": 0,
-          "expenseId": "1755021450167",
-          "groupId": "1755010292238"
-        }
+       
       ]
     },
     {
@@ -27,147 +15,143 @@
       "name": "Kuldeep",
       "email": "kuldeep@gmail.com",
       "password": "123456",
-      "owes": [],
-      "owedBy": [
-        {
-          "from": "Abhishek Marethiya",
-          "amount": 0,
-          "expenseId": "1755021427607",
-          "groupId": "1755010292238"
-        },
-        {
-          "from": "XYZ",
-          "amount": 0,
-          "expenseId": "1755021427607",
-          "groupId": "1755010292238"
-        },
-        {
-          "from": "Abhishek",
-          "amount": 0,
-          "expenseId": "1755021427607",
-          "groupId": "1755010292238"
-        }
-      ]
+      "owes": [
+        
+      ],
+      "owedBy": []
     },
     {
-      "id": "1754920080019",
+      "id": "1755113492309",
       "name": "XYZ",
       "email": "xyz@gmail.com",
-      "password": "123456",
-      "owes": [
-        {
-          "to": "Kuldeep",
-          "amount": 0,
-          "expenseId": "1755021427607",
-          "groupId": "1755010292238"
-        },
-        {
-          "to": "Abhishek Marethiya",
-          "amount": 0,
-          "expenseId": "1755021450167",
-          "groupId": "1755010292238"
-        }
-      ],
-      "owedBy": []
-    },
-    {
-      "id": "1754921298221",
-      "name": "Abhishek",
-      "email": "ab@gmail.com",
-      "password": "123456",
-      "owes": [
-        {
-          "to": "Kuldeep",
-          "amount": 0,
-          "expenseId": "1755021427607",
-          "groupId": "1755010292238"
-        }
-      ],
-      "owedBy": []
-    },
-    {
-      "id": "1754922859191",
-      "name": "vansh",
-      "email": "v@w.com",
       "owes": [],
       "owedBy": []
     },
     {
-      "id": "1755022275007",
-      "name": "qwer",
-      "email": "qwer@gmail.com"
+      "id": "1755114794998",
+      "name": "new",
+      "email": "new@gmail.com"
     }
   ],
-  "groups": [
-    {
-      "id": "1755010292238",
-      "name": "Goa Trip",
-      "participants": [
-        "Abhishek Marethiya",
-        "Kuldeep",
-        "XYZ",
-        "Abhishek",
-        "vansh"
-      ],
-      "created": "2025-08-12",
-      "lastModified": "2025-08-12"
-    }
-  ],
+  "groups": [],
   "expenses": [],
   "settlements": [
     {
-      "id": "c8fc",
-      "groupId": "1755010292238",
-      "from": "XYZ",
-      "to": "Abhishek Marethiya",
-      "amount": 1000,
-      "expenseId": null,
-      "date": "2025-08-12T17:45:49.362Z"
-    },
-    {
-      "id": "d205",
-      "groupId": "1755010292238",
-      "from": "Abhishek Marethiya",
-      "to": "Kuldeep",
-      "amount": 11419.5,
-      "expenseId": null,
-      "date": "2025-08-12T17:57:07.607Z"
-    },
-    {
-      "id": "49d2",
-      "groupId": "1755010292238",
-      "from": "XYZ",
-      "to": "Kuldeep",
-      "amount": 11419.5,
-      "expenseId": null,
-      "date": "2025-08-12T17:57:07.607Z"
-    },
-    {
-      "id": "9b55",
-      "groupId": "1755010292238",
-      "from": "Abhishek",
-      "to": "Kuldeep",
-      "amount": 11419.5,
-      "expenseId": null,
-      "date": "2025-08-12T17:57:07.607Z"
-    },
-    {
-      "id": "5d4d",
-      "groupId": "1755010292238",
+      "id": "8d80",
+      "groupId": null,
       "from": "Kuldeep",
       "to": "Abhishek Marethiya",
-      "amount": 41,
+      "amount": 500,
       "expenseId": null,
-      "date": "2025-08-12T17:57:30.167Z"
+      "date": "2025-08-13T19:50:56.161Z"
     },
     {
-      "id": "026f",
-      "groupId": "1755010292238",
+      "id": "04a8",
+      "groupId": null,
+      "from": "Abhishek Marethiya",
+      "to": "Kuldeep",
+      "amount": 165,
+      "expenseId": null,
+      "date": "2025-08-13T19:51:18.008Z"
+    },
+    {
+      "id": "bbd7",
+      "groupId": null,
+      "from": "Kuldeep",
+      "to": "Abhishek Marethiya",
+      "amount": 400,
+      "expenseId": null,
+      "date": "2025-08-13T19:52:02.001Z"
+    },
+    {
+      "id": "0500",
+      "groupId": null,
       "from": "XYZ",
       "to": "Abhishek Marethiya",
-      "amount": 41,
+      "amount": 400,
       "expenseId": null,
-      "date": "2025-08-12T17:57:30.167Z"
+      "date": "2025-08-13T19:52:02.001Z"
+    },
+    {
+      "id": "32a5",
+      "groupId": null,
+      "from": "Kuldeep",
+      "to": "Abhishek Marethiya",
+      "amount": 100,
+      "expenseId": null,
+      "date": "2025-08-13T20:00:19.525Z"
+    },
+    {
+      "id": "6dc0",
+      "groupId": null,
+      "from": "Abhishek Marethiya",
+      "to": "Kuldeep",
+      "amount": 200,
+      "expenseId": null,
+      "date": "2025-08-13T20:00:40.052Z"
+    },
+    {
+      "id": "8cd1",
+      "groupId": null,
+      "from": "XYZ",
+      "to": "Abhishek Marethiya",
+      "amount": 100,
+      "expenseId": null,
+      "date": "2025-08-13T20:01:35.564Z"
+    },
+    {
+      "id": "164b",
+      "groupId": null,
+      "from": "Kuldeep",
+      "to": "Abhishek Marethiya",
+      "amount": 411.33,
+      "expenseId": null,
+      "date": "2025-08-13T20:12:17.215Z"
+    },
+    {
+      "id": "a3b3",
+      "groupId": null,
+      "from": "XYZ",
+      "to": "Abhishek Marethiya",
+      "amount": 411.33,
+      "expenseId": null,
+      "date": "2025-08-13T20:12:17.215Z"
+    },
+    {
+      "id": "7861",
+      "groupId": null,
+      "from": "Kuldeep",
+      "to": "Abhishek Marethiya",
+      "amount": 150,
+      "expenseId": null,
+      "date": "2025-08-13T20:13:19.439Z"
+    },
+    {
+      "id": "c1f9",
+      "groupId": null,
+      "from": "Abhishek Marethiya",
+      "to": "Kuldeep",
+      "amount": 200,
+      "expenseId": null,
+      "date": "2025-08-13T20:13:42.303Z"
+    },
+    {
+      "id": "f73f",
+      "groupId": null,
+      "from": "Kuldeep",
+      "to": "Abhishek Marethiya",
+      "amount": 200,
+      "expenseId": null,
+      "date": "2025-08-13T20:14:43.477Z"
+    },
+    {
+      "id": "637a",
+      "groupId": null,
+      "from": "Kuldeep",
+      "to": "Abhishek Marethiya",
+      "amount": 100,
+      "expenseId": null,
+      "date": "2025-08-13T20:15:24.023Z"
     }
   ]
 }

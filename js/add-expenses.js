@@ -3,6 +3,19 @@ if (!user) {
   alert("You're not logged in!");
   window.location.href = 'index.html';
 }
+
+const API_GROUPS = "http://localhost:3000/groups";
+const API_USERS = "http://localhost:3000/users";
+const API_EXPENSES="http://localhost:3000/expenses";
+
+// Extract groupId from URL
+const urlParams = new URLSearchParams(window.location.search);
+console.log(urlParams);
+
+const defaultGroupId = urlParams.get("groupId");
+console.log('defaultGroupId',defaultGroupId);
+
+
 const usernameSpan = document.getElementById('username');
 usernameSpan.textContent = user.name;
 
@@ -27,26 +40,23 @@ function showToast(message, type = "success") {
 }
 
 
-const API_GROUPS = "http://localhost:3000/groups";
-const API_USERS = "http://localhost:3000/users";
-const API_EXPENSES="http://localhost:3000/expenses";
 
 const groupName = document.getElementById("group");
+const description= document.getElementById("title");
+const amount=document.getElementById("amount");
+
 const paidBySelect = document.getElementById("paidBy");
 const form = document.getElementById("expense-form");
 const splitBetween = document.getElementById("participants-list");
 const checked = document.querySelectorAll("#participants-list input:checked");
 let requiredGroup;
 
-// Extract groupId from URL
-const urlParams = new URLSearchParams(window.location.search);
-console.log(urlParams);
-
-const defaultGroupId = urlParams.get("groupId");
-console.log(defaultGroupId);
 
 
 let checkedValue = [];
+
+
+
 
 function handleChange(checkbox) {
   const value = checkbox.value;
@@ -68,6 +78,7 @@ function handleChange(checkbox) {
     paidBySelect.appendChild(option);
   }
 }
+
 
 async function loadUsers() {
   
@@ -253,7 +264,6 @@ logoutBtn.addEventListener('click', () => {
 });
 
 document.addEventListener("DOMContentLoaded",()=>{
-    // loadParticipants();
     loadUsers();
 } );
 

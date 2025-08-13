@@ -23,6 +23,9 @@ const groupTotalEl = document.getElementById("group-total");
 const expenseList = document.getElementById("expensesList");
 const expensesHeader=document.getElementById("expensesheader");
 const showAllExpensesDetail=document.getElementById("showAllExpensesDetail");
+const showAllMembersModal=document.querySelector(".showAllMembersModal");
+const closeModal=document.getElementById("closeModal");
+const membersList=document.querySelector('.membersList')
 let groupData = null;
 let nameClass=null;
 
@@ -45,7 +48,64 @@ function showToast(message, type = "success") {
 
 
 
+function handleAddMember(){
+  window.location.href = `add-member.html?groupId=${selectedGroupId}`;
+  console.log("ok");
+  
+}
 
+async function handleDeleteMember(name){
+  console.log(name);
+  const res=await fetch(`${API_GROUPS}/${selectedGroupId}`);
+  const group=await res.json();
+
+  console.log(group);
+
+  const remainigParticipants=group.participants.filter((participant)=> participant!==name);
+  group.participants=remainigParticipants;
+
+
+  // console.log(group);
+
+
+      await fetch(`${API_GROUPS}/${groupId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(group)
+    });
+  
+  
+}
+
+async function handleAddMemberToModal(){
+  const res=await fetch(`${API_GROUPS}/${selectedGroupId}`);
+  const group=await res.json();
+
+  let members=group.participants;
+   members.forEach((member)=>{
+       const div=document.createElement('div');
+       div.className="flex justify-between border border-gray-300 px-4 py-1 rounded-md mb-1 "
+      div.innerHTML=`
+          <p>${member}</p>
+          <button class="text-red-500" onclick="handleDeleteMember('${member}')">delete</button>`
+      showAllMembersModal.appendChild(div)
+   })
+
+
+}
+
+function showAllMemebers(){
+  event.stopPropagation();
+  showAllMembersModal.style.left = "20px";
+}
+function handleCloseModal(){
+  
+  console.log("ok");
+  
+  showAllMembersModal.style.left = "-500px";
+}
 
 async function handleDeleteExpense(expenseId) {
   try {
@@ -82,7 +142,6 @@ async function handleDeleteExpense(expenseId) {
     showToast("An error occurred.");
   }
 }
-
 async function adjustUserOwes(userName, toUserName, amountDelta, groupId) {
   const userRes = await fetch(`${API_USERS}?name=${encodeURIComponent(userName)}`);
   const user = (await userRes.json())[0];
@@ -128,14 +187,16 @@ async function adjustUserOwedBy(userName, fromUserName, amountDelta, groupId) {
 
 
 
- function handleEditExpense(expenseId) {
-  console.log(expenseId);
+function handleEditExpense(expenseId) {
+  console.log("ok");
   
-  // window.location.href=`add-expenses.html?editExpenseId=${expenseId}`;
-      
-
-
+  localStorage.setItem("editExpenseId", expenseId);
+  console.log(typeof(selectedGroupId));
+  
+  window.location.href = `edit-expenses.html?groupId=${selectedGroupId}`; // navigate to Edit page
+  
 }
+
 
 // Fetch saare expenses of a group 
 async function fetchGroupExpenses() {
@@ -211,18 +272,15 @@ div.innerHTML = `
     ${expense.paidBy}
   </div>
   <div>
-
+   <button onclick="event.stopPropagation(); handleEditExpense('${expense.id}')" class="btn btn-sm btn-gradient bg-yellow-500  btn-delete tracking-widest w-[80px]">
+    Edit
+  </button>
   <button onclick="event.stopPropagation(); handleDeleteExpense('${expense.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest w-[80px]">
     Delete
   </button>
   </div>
-
 `; 
-//  <button 
-//   class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 tracking-widest"
-//   onclick="handleEditExpense('${expense.id}')">
-//   Edit
-// </button>
+
 
 
       div.addEventListener('click',()=>{
@@ -285,8 +343,8 @@ async function loadGroupOwesSummary() {
       html += `
         <li>
           <span class="${owesClass}">${owesName}</span> owes 
-          <span class="${owedToClass}">${owedToName}</span> 
-          ₹${amount.toFixed(2)}
+          <span class="${owedToClass} ">${owedToName}</span> 
+          <span class="${owesClass} ${owedToClass}">₹${amount.toFixed(2)}</span>
         </li>`;
     }
     html += '</ul>';
@@ -322,5 +380,13 @@ handleAddExpenses.addEventListener('click',()=>{
 document.addEventListener("DOMContentLoaded",()=>{
   fetchGroupExpenses();
   loadGroupOwesSummary();
+  handleAddMemberToModal();
 });
 
+window.addEventListener("click",()=>{
+  handleCloseModal();
+})
+
+showAllMembersModal.addEventListener("click",()=>{
+  showAllMemebers();
+})

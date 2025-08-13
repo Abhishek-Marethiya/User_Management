@@ -1,12 +1,17 @@
-const user = JSON.parse(localStorage.getItem('user'));   // logged in user detail..
+const user = JSON.parse(localStorage.getItem("user")); // logged in user detail..
 if (!user) {
   alert("You're not logged in!");
-  window.location.href = 'index.html';
+  window.location.href = "index.html";
 }
+const urlParams = new URLSearchParams(window.location.search);
+console.log(urlParams);
+const groupId = urlParams.get("groupId");
+console.log("groupId", groupId);
 
 const API_USERS = "http://localhost:3000/users";
+const API_GROUPS = "http://localhost:3000/groups";
 const form = document.getElementById("add-member-form");
-const logoutBtn = document.getElementById('logout-btn');
+const logoutBtn = document.getElementById("logout-btn");
 
 function showToast(message, type = "success") {
   const toastContainer = document.getElementById("toast-container");
@@ -26,46 +31,81 @@ function showToast(message, type = "success") {
 }
 
 form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
 
-    const existingUsers = await fetch(API_USERS).then(res => res.json());
-    const userExists = existingUsers.some(user => user.email.toLowerCase() === email.toLowerCase());
-     console.log(existingUsers);
-     
-    if (userExists) {
-        showToast("A user with this email already exists!","error");
-        return;
-    }
+  const existingUsers = await fetch(API_USERS).then((res) => res.json());
+  const userExists = existingUsers.some(
+    (user) => user.email.toLowerCase() === email.toLowerCase()
+  );
+  const userNameExists = existingUsers.some(
+    (user) => user.name.toLowerCase() === name.toLowerCase()
+  );
+  console.log("existingUsers,", existingUsers);
 
-    const newUser = {
-        id:Date.now().toString(),
-        name,
-        email
-    };
+  if (userExists) {
+    showToast("A user with this email already exists!", "error");
+    return;
+  }
+  if (userNameExists) {
+    showToast("A user with this name already exists!", "error");
+    return;
+  }
 
-    const res = await fetch(API_USERS, {
-        method: "POST",
+  const newUser = {
+    id: Date.now().toString(),
+    name,
+    email,
+  };
+
+  const res = await fetch(API_USERS, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(newUser),
+  });
+
+  if (res.ok) {
+    if (groupId !== null) {
+      console.log("okkkkkkkkkkk");
+      console.log(newUser.name);
+      const res = await fetch(`${API_GROUPS}/${groupId}`);
+      const group = await res.json();
+
+      console.log(group);
+
+      group.participants.push(newUser.name);
+      console.log(group);
+
+      const ress = await fetch(`${API_GROUPS}/${groupId}`, {
+        method: "PUT",
         headers: {
-            "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(newUser)
-    });
-
-    if (res.ok) {
-        form.reset();
-       showToast("Member added successfully!","success");
-        window.location.href = 'create-group.html'; 
-    } else {
-        showToast("Something went wrong. Try again.","error");
+        body: JSON.stringify(group),
+      });
+      if (ress.ok) {
+        showToast("Member added successfully!", "success");
+        window.location.href = `group.html?groupId=${groupId}`;
+      }
     }
+    else{
+       form.reset();
+    showToast("Member added successfully!", "success");
+    window.location.href = "create-group.html";
+    }
+   
+  } else {
+    showToast("Something went wrong. Try again.", "error");
+  }
 });
 
 // Logout logic
 
-logoutBtn.addEventListener('click', () => {
-  localStorage.removeItem('user');
-  window.location.href = 'index.html';
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("user");
+  window.location.href = "index.html";
 });
