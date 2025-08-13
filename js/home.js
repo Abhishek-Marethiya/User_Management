@@ -49,7 +49,7 @@ async function fetchGroups() {
    
       
       const card = document.createElement('div');
-      card.className = 'bg-white p-6 shadow rounded cursor-pointer hover:bg-gray-50 flex justify-between items-center relative';
+      card.className = 'bg-white min-w-fit p-6 mb-4 shadow rounded cursor-pointer hover:bg-gray-50 flex justify-between items-center relative';
       card.innerHTML = `         
         <div>
        <h3 class="text-lg font-semibold text-green-700">${group.name}</h3>
@@ -59,7 +59,7 @@ async function fetchGroups() {
         </div>
         <div>           
          <a href="add-expenses.html?groupId=${group.id}" class="btn btn-gradient btn-sm tracking-widest"> Add Expense</a>
-        <button onclick="event.stopPropagation(); handleDeleteGroup('${group.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest ml-1">Delete</button>
+        <button onclick="event.stopPropagation(); handleDeleteGroup('${group.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest mr-1 ml-2">Delete</button>
         </div>
   
       `;

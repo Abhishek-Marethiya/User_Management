@@ -342,8 +342,8 @@ async function loadGroupOwesSummary() {
 
       html += `
         <li>
-          <span class="${owesClass}">${owesName}</span> owes 
-          <span class="${owedToClass} ">${owedToName}</span> 
+          <span >${owesName}</span> owes 
+          <span >${owedToName}</span> 
           <span class="${owesClass} ${owedToClass}">₹${amount.toFixed(2)}</span>
         </li>`;
     }

@@ -77,10 +77,31 @@ authForm.addEventListener('submit', async (e) => {
 
   const formData = new FormData(authForm);
   const data = Object.fromEntries(formData);
-
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(data.email)) {
+    showToast("Please enter a valid email address!", "error");
+    return;
+  }
+    // yha par sab check krna h email and password
   if (!isLogin && data.password !== data['confirm-password']) {
     showToast('Passwords do not match!',"error");
     return;
+  }
+
+  const password = data.password;
+  const passwordRules = [
+    { regex: /.{6,}/, message: "Password must be at least 6 characters long" },
+    { regex: /[A-Z]/, message: "Password must contain at least one uppercase letter" },
+    { regex: /[a-z]/, message: "Password must contain at least one lowercase letter" },
+    { regex: /\d/, message: "Password must contain at least one number" },
+    { regex: /[@$!%*?&]/, message: "Password must contain at least one special character (@, $, !, %, *, ?, &)" }
+  ];
+
+  for (let rule of passwordRules) {
+    if (!rule.regex.test(password)) {
+      showToast(rule.message, "error");
+      return;
+    }
   }
 
   try {
@@ -105,7 +126,7 @@ authForm.addEventListener('submit', async (e) => {
         showToast('User already exists with this email!',"error");
         return;
       }
-
+     
       const newUser = {
         id:Date.now().toString(),
         name: data.name,

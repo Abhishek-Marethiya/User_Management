@@ -58,6 +58,7 @@ form.addEventListener("submit", async (e) => {
     id: Date.now().toString(),
     name,
     email,
+    password:"Default@123"
   };
 
   const res = await fetch(API_USERS, {
