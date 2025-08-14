@@ -54,30 +54,56 @@ function handleAddMember(){
   
 }
 
-async function handleDeleteMember(name){
-  console.log(name);
-  const res=await fetch(`${API_GROUPS}/${selectedGroupId}`);
-  const group=await res.json();
+async function handleDeleteExpense(expenseId) {
+  try {
+    // 1. Fetch the expense first
+    const expenseRes = await fetch(`${API_EXPENSES}/${expenseId}`);
+    if (!expenseRes.ok) throw new Error("Expense not found");
+    const expense = await expenseRes.json();
 
-  console.log(group);
+    // 2. Adjust debts for all involved participants
+    for (const participant of expense.splitBetween) {
+      if (participant.memberName !== expense.paidBy) {
+        // Subtract their share from owes & owedBy
+        await adjustUserOwes(
+          participant.memberName,
+          expense.paidBy,
+          -participant.share,
+          expense.groupId
+        );
+        await adjustUserOwedBy(
+          expense.paidBy,
+          participant.memberName,
+          -participant.share,
+          expense.groupId
+        );
+      }
+    }
 
-  const remainigParticipants=group.participants.filter((participant)=> participant!==name);
-  group.participants=remainigParticipants;
-
-
-  // console.log(group);
-
-
-      await fetch(`${API_GROUPS}/${groupId}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(group)
+    // 3. Delete the expense from DB
+    const deleteRes = await fetch(`${API_EXPENSES}/${expenseId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" }
     });
-  
-  
+
+    if (!deleteRes.ok) {
+      showToast("Failed to delete expense", "error");
+      return;
+    }
+
+    // 4. Refresh UIs (after debts are updated in DB)
+    fetchGroupExpenses();       // Refresh group expense list
+    loadGroupOwesSummary();     // Refresh group debt summary
+    loadOverallDebtSummary();   // 🔹 Refresh overall debt summary
+
+    // 5. Show success toast
+    showToast(`Expense "${expense.description}" deleted successfully.`);
+  } catch (err) {
+    console.error("Error deleting expense:", err);
+    showToast("An error occurred while deleting.", "error");
+  }
 }
+
 
 async function handleAddMemberToModal(){
   const res=await fetch(`${API_GROUPS}/${selectedGroupId}`);
@@ -100,6 +126,7 @@ function showAllMemebers(){
   event.stopPropagation();
   showAllMembersModal.style.left = "20px";
 }
+
 function handleCloseModal(){
   
   console.log("ok");
@@ -109,39 +136,54 @@ function handleCloseModal(){
 
 async function handleDeleteExpense(expenseId) {
   try {
+   
     const expenseRes = await fetch(`${API_EXPENSES}/${expenseId}`);
     if (!expenseRes.ok) throw new Error("Expense not found");
     const expense = await expenseRes.json();
-
-    for (const participant of expense.splitBetween) {
-      if (participant.memberName !== expense.paidBy) {
-
-        // --- Update the owes array for this participant ---
-        await adjustUserOwes(participant.memberName, expense.paidBy, -participant.share, expense.groupId);
-
-        // --- Update the owedBy array for the paidBy user ---
-        await adjustUserOwedBy(expense.paidBy, participant.memberName, -participant.share, expense.groupId);
-      }
-    }
+    const groupId = expense.groupId;
 
     const deleteRes = await fetch(`${API_EXPENSES}/${expenseId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" }
     });
 
-    if (deleteRes.ok) {
-      showToast(`Expense "${expense.description}" deleted successfully.`);
-      fetchGroupExpenses(); // Refresh list
-      loadGroupOwesSummary(); // Refresh debts
-    } else {
-      showToast("Failed to delete expense", "error");
+    if (!deleteRes.ok) throw new Error("Failed to delete expense");
+    const usersRes = await fetch(`${API_USERS}`);
+    const users = await usersRes.json();
+
+    for (const user of users) {
+      const newOwes = (user.owes || []).filter(o => o.groupId !== groupId);
+      const newOwedBy = (user.owedBy || []).filter(o => o.groupId !== groupId);
+
+      await fetch(`${API_USERS}/${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ owes: newOwes, owedBy: newOwedBy })
+      });
     }
+
+    const remainingRes = await fetch(`${API_EXPENSES}?groupId=${groupId}`);
+    const remainingExpenses = await remainingRes.json();
+
+    for (const exp of remainingExpenses) {
+      for (const participant of exp.splitBetween) {
+        if (participant.memberName !== exp.paidBy) {
+          await adjustUserOwes(participant.memberName, exp.paidBy, participant.share, exp.groupId);
+          await adjustUserOwedBy(exp.paidBy, participant.memberName, participant.share, exp.groupId);
+        }
+      }
+    }
+
+    showToast(`Expense "${expense.description}" deleted successfully.`);
+    fetchGroupExpenses();
+    loadGroupOwesSummary();
 
   } catch (err) {
     console.error("Error deleting expense:", err);
     showToast("An error occurred.");
   }
 }
+
 async function adjustUserOwes(userName, toUserName, amountDelta, groupId) {
   const userRes = await fetch(`${API_USERS}?name=${encodeURIComponent(userName)}`);
   const user = (await userRes.json())[0];
@@ -149,9 +191,14 @@ async function adjustUserOwes(userName, toUserName, amountDelta, groupId) {
 
   if (!Array.isArray(user.owes)) user.owes = [];
 
-  const owesEntry = user.owes.find(o => o.to === toUserName && o.groupId === groupId);
-  if (owesEntry) {
-    owesEntry.amount = Math.max(0, owesEntry.amount + amountDelta);
+  const owesIndex = user.owes.findIndex(o => o.to === toUserName && o.groupId === groupId);
+  
+  if (owesIndex !== -1) {
+    user.owes[owesIndex].amount += amountDelta;
+    if (user.owes[owesIndex].amount <= 0) {
+      // Remove the entry completely
+      user.owes.splice(owesIndex, 1);
+    }
   } else if (amountDelta > 0) {
     user.owes.push({ to: toUserName, amount: amountDelta, groupId });
   }
@@ -170,9 +217,14 @@ async function adjustUserOwedBy(userName, fromUserName, amountDelta, groupId) {
 
   if (!Array.isArray(user.owedBy)) user.owedBy = [];
 
-  const owedByEntry = user.owedBy.find(o => o.from === fromUserName && o.groupId === groupId);
-  if (owedByEntry) {
-    owedByEntry.amount = Math.max(0, owedByEntry.amount + amountDelta);
+  const owedByIndex = user.owedBy.findIndex(o => o.from === fromUserName && o.groupId === groupId);
+  
+  if (owedByIndex !== -1) {
+    user.owedBy[owedByIndex].amount += amountDelta;
+    if (user.owedBy[owedByIndex].amount <= 0) {
+      // Remove the entry completely
+      user.owedBy.splice(owedByIndex, 1);
+    }
   } else if (amountDelta > 0) {
     user.owedBy.push({ from: fromUserName, amount: amountDelta, groupId });
   }
@@ -183,8 +235,6 @@ async function adjustUserOwedBy(userName, fromUserName, amountDelta, groupId) {
     body: JSON.stringify({ owedBy: user.owedBy })
   });
 }
-
-
 
 
 function handleEditExpense(expenseId) {
@@ -249,7 +299,7 @@ return;
   <div class="w-[200px]">Expense Name</div>
   <div class="w-[100px]">Amount</div>
   <div class="w-[150px]">Paid By</div>
-  <div class="w-[80px]"></div>
+  <div class="w-[110px]"></div>
 `;
 
 expensesHeader.appendChild(header);
@@ -272,10 +322,10 @@ div.innerHTML = `
     ${expense.paidBy}
   </div>
   <div>
-   <button onclick="event.stopPropagation(); handleEditExpense('${expense.id}')" class="btn btn-sm btn-gradient bg-yellow-500  btn-delete tracking-widest w-[80px]">
+   <button onclick="event.stopPropagation(); handleEditExpense('${expense.id}')" class="btn btn-sm btn-gradient bg-yellow-500  btn-delete w-[50px]">
     Edit
   </button>
-  <button onclick="event.stopPropagation(); handleDeleteExpense('${expense.id}')" class="btn btn-sm btn-gradient btn-delete tracking-widest w-[80px]">
+  <button onclick="event.stopPropagation(); handleDeleteExpense('${expense.id}')" class="btn btn-sm btn-gradient btn-delete w-[60px] mt-2 mb-2">
     Delete
   </button>
   </div>

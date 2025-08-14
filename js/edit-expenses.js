@@ -4,88 +4,21 @@ if (!user) {
   window.location.href = 'index.html';
 }
 
-const API_GROUPS = "http://localhost:3000/groups";
-const API_USERS = "http://localhost:3000/users";
+const API_GROUPS   = "http://localhost:3000/groups";
+const API_USERS    = "http://localhost:3000/users";
 const API_EXPENSES = "http://localhost:3000/expenses";
 
 const urlParams = new URLSearchParams(window.location.search);
 const defaultGroupId = urlParams.get("groupId");
-console.log(defaultGroupId);
 
-const usernameSpan = document.getElementById('username');
-usernameSpan.textContent = user.name;
+document.getElementById('username').textContent = user.name;
 
 const editExpenseId = localStorage.getItem("editExpenseId");
-if (!editExpenseId) {
-  alert("No expense selected for editing");
-  window.location.href = `group.html?groupId=${defaultGroupId}`;
-}
 
 let requiredGroup;
-let checkedValue = [];
-let oldExpenseData = null;
+let checkedValue = [];    
+let oldExpenseData = null; // only used to prefill
 
-async function loadUsers() {
-  const res = await fetch(`${API_GROUPS}/${defaultGroupId}`);
-  const group = await res.json();
-  requiredGroup = group;
-  document.getElementById("group").value = group.name;
-
-  group.participants.forEach(userName => {
-    const checkboxDiv = document.createElement("div");
-    checkboxDiv.className = "flex items-center";
-    checkboxDiv.innerHTML = `
-      <input type="checkbox" name="participants" value="${userName}"
-        class="mr-2" onchange="handleChange(this)">
-      <label>${userName}</label>
-    `;
-    document.getElementById("participants-list").appendChild(checkboxDiv);
-  });
-}
-
-async function loadExpenseData() {
-  const res = await fetch(`${API_EXPENSES}/${editExpenseId}`);
-  const expense = await res.json();
-  oldExpenseData = expense;
-
-  document.getElementById("title").value = expense.description;
-  document.getElementById("amount").value = expense.amount;
-  document.getElementById("paidBy").value = expense.paidBy;
-  document.getElementById("splitType").value = expense.splitType;
-
-  expense.splitBetween.forEach(p => {
-    const checkbox = document.querySelector(`input[name="participants"][value="${p.memberName}"]`);
-    if (checkbox) {
-      checkbox.checked = true;
-      if (!checkedValue.includes(p.memberName)) {
-        checkedValue.push(p.memberName);
-      }
-    }
-  });
-
-  updatePaidByOptions();
-}
-
-function handleChange(checkbox) {
-  const value = checkbox.value;
-  if (checkbox.checked) {
-    if (!checkedValue.includes(value)) checkedValue.push(value);
-  } else {
-    checkedValue = checkedValue.filter(v => v !== value);
-  }
-  updatePaidByOptions();
-}
-
-function updatePaidByOptions() {
-  const paidBySelect = document.getElementById("paidBy");
-  paidBySelect.innerHTML = "";
-  checkedValue.forEach(name => {
-    const option = document.createElement("option");
-    option.value = name;
-    option.textContent = name;
-    paidBySelect.appendChild(option);
-  });
-}
 
 function showToast(message, type = "success") {
   const toastContainer = document.getElementById("toast-container");
@@ -100,94 +33,171 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
-// Remove old expense effect
-async function removeOldExpenseEffect() {
-  const participants = oldExpenseData.splitBetween;
-  const payer = oldExpenseData.paidBy;
-
-  for (let participant of participants) {
-    if (participant.memberName === payer) continue;
-
-    await updateUserBalance(payer, participant.memberName, -participant.share);
-    await updateUserBalance(participant.memberName, payer, participant.share);
+function handleChange(checkbox) {
+  const value = checkbox.value;
+  if (checkbox.checked) {
+    if (!checkedValue.includes(value)) checkedValue.push(value);
+  } else {
+    checkedValue = checkedValue.filter(v => v !== value);
   }
 }
 
-// Apply new expense effect
-async function applyNewExpenseEffect(newExpense) {
-  const participants = newExpense.splitBetween;
-  const payer = newExpense.paidBy;
+async function loadUsers() {
+  const res = await fetch(`${API_GROUPS}/${defaultGroupId}`);
+  const group = await res.json();
+  requiredGroup = group;
 
-  for (let participant of participants) {
-    if (participant.memberName === payer) continue;
+  document.getElementById("group").value = group.name;
 
-    await updateUserBalance(payer, participant.memberName, participant.share);
-    await updateUserBalance(participant.memberName, payer, -participant.share);
-  }
-}
+  const paidBySelect = document.getElementById("paidBy");
+  const participantsList = document.getElementById("participants-list");
 
-// Update balances in user object
-async function updateUserBalance(userName, targetName, amount) {
-  const res = await fetch(`${API_USERS}?name=${encodeURIComponent(userName)}`);
-  const users = await res.json();
-  const userObj = users[0];
-  if (!userObj) return;
+  group.participants.forEach(userName => {
+    const option = document.createElement("option");
+    option.value = userName;
+    option.textContent = userName;
+    paidBySelect.appendChild(option);
 
-  if (!userObj.owes) userObj.owes = {};
-  if (!userObj.owedBy) userObj.owedBy = {};
-
-  if (amount > 0) {
-    userObj.owedBy[targetName] = (userObj.owedBy[targetName] || 0) + amount;
-    if (userObj.owes[targetName]) {
-      const net = userObj.owedBy[targetName] - userObj.owes[targetName];
-      if (net > 0) {
-        userObj.owedBy[targetName] = net;
-        delete userObj.owes[targetName];
-      } else if (net < 0) {
-        userObj.owes[targetName] = -net;
-        delete userObj.owedBy[targetName];
-      } else {
-        delete userObj.owes[targetName];
-        delete userObj.owedBy[targetName];
-      }
-    }
-  } else if (amount < 0) {
-    const absAmount = Math.abs(amount);
-    userObj.owes[targetName] = (userObj.owes[targetName] || 0) + absAmount;
-    if (userObj.owedBy[targetName]) {
-      const net = userObj.owedBy[targetName] - userObj.owes[targetName];
-      if (net > 0) {
-        userObj.owedBy[targetName] = net;
-        delete userObj.owes[targetName];
-      } else if (net < 0) {
-        userObj.owes[targetName] = -net;
-        delete userObj.owedBy[targetName];
-      } else {
-        delete userObj.owes[targetName];
-        delete userObj.owedBy[targetName];
-      }
-    }
-  }
-
-  await fetch(`${API_USERS}/${userObj.id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(userObj)
+    const checkboxDiv = document.createElement("div");
+    checkboxDiv.className = "flex items-center";
+    checkboxDiv.innerHTML = `
+      <input type="checkbox" name="participants" value="${userName}"
+        class="mr-2" onchange="handleChange(this)">
+      <label>${userName}</label>
+    `;
+    participantsList.appendChild(checkboxDiv);
   });
 }
 
-// Handle form submit
+async function loadExpenseData() {
+  const res = await fetch(`${API_EXPENSES}/${editExpenseId}`);
+  const expense = await res.json();
+  oldExpenseData = expense;
+
+  document.getElementById("title").value  = expense.description;
+  document.getElementById("amount").value = expense.amount;
+  document.getElementById("paidBy").value = expense.paidBy;
+  
+  const splitTypeEl = "equal";
+
+  expense.splitBetween.forEach(p => {
+    const checkbox = document.querySelector(
+      `input[name="participants"][value="${p.memberName}"]`
+    );
+    if (checkbox) {
+      checkbox.checked = true;
+      if (!checkedValue.includes(p.memberName)) checkedValue.push(p.memberName);
+    }
+  });
+}
+
+
+async function recomputeGroupBalances(groupId) {
+  // Load all expenses in this group
+  const expensesRes = await fetch(`${API_EXPENSES}?groupId=${groupId}`);
+  const expenses = await expensesRes.json();
+
+  //  Build pairwise owed matrix: owed[u][v] = amount user u owes user v (raw sum)
+  const owed = {}; // { [u]: { [v]: number } }
+
+  const addOwed = (from, to, amt) => {
+    if (!owed[from]) owed[from] = {};
+    owed[from][to] = (owed[from][to] || 0) + amt;
+  };
+
+  for (const exp of expenses) {
+    const payer = exp.paidBy;
+    for (const p of exp.splitBetween || []) {
+      if (p.memberName === payer) continue;
+      addOwed(p.memberName, payer, Number(p.share) || 0);
+    }
+  }
+
+  // Net opposite directions (A owes B and B owes A)
+  // normalize so only one direction remains per pair
+  const usersSet = new Set();
+  Object.keys(owed).forEach(u => {
+    usersSet.add(u);
+    Object.keys(owed[u]).forEach(v => usersSet.add(v));
+  });
+
+  for (const u of usersSet) {
+    for (const v of usersSet) {
+      if (u === v) continue;
+      const uv = (owed[u]?.[v]) || 0;
+      const vu = (owed[v]?.[u]) || 0;
+      if (uv === 0 && vu === 0) continue;
+
+      if (uv >= vu) {
+        if (!owed[u]) owed[u] = {};
+        owed[u][v] = uv - vu;
+        if (owed[v]) owed[v][u] = 0;
+      } else {
+        if (!owed[v]) owed[v] = {};
+        owed[v][u] = vu - uv;
+        if (owed[u]) owed[u][v] = 0;
+      }
+    }
+  }
+
+  // for each user, replace group entries with freshly computed ones
+  const usersRes = await fetch(API_USERS);
+  const allUsers = await usersRes.json();
+
+  // Prepare quick lookups for new owes/owedBy
+  const newOwesByUser = {};   // user -> [{to, amount, groupId}]
+  const newOwedByUser = {};   // user -> [{from, amount, groupId}]
+
+  for (const u of usersSet) {
+    const pairs = owed[u] || {};
+    for (const v of Object.keys(pairs)) {
+      const amt = pairs[v] || 0;
+      if (amt > 0) {
+        if (!newOwesByUser[u]) newOwesByUser[u] = [];
+        newOwesByUser[u].push({ to: v, amount: amt, groupId });
+        if (!newOwedByUser[v]) newOwedByUser[v] = [];
+        newOwedByUser[v].push({ from: u, amount: amt, groupId });
+      }
+    }
+  }
+
+  for (const u of allUsers) {
+    const keepOwes   = (u.owes   || []).filter(x => x.groupId !== groupId);
+    const keepOwedBy = (u.owedBy || []).filter(x => x.groupId !== groupId);
+
+    const addOwes   = newOwesByUser[u.name]   || [];
+    const addOwedBy = newOwedByUser[u.name]   || [];
+
+    const nextOwes   = [...keepOwes,   ...addOwes];
+    const nextOwedBy = [...keepOwedBy, ...addOwedBy];
+
+    await fetch(`${API_USERS}/${u.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ owes: nextOwes, owedBy: nextOwedBy })
+    });
+  }
+}
+
 document.getElementById("expense-form").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const amount = parseFloat(document.getElementById("amount").value);
+  const amount = Number(document.getElementById("amount").value);
   const paidBy = document.getElementById("paidBy").value;
-  const splitType = document.getElementById("splitType").value;
+  const splitType = "equal"; 
 
-  const splitBetween = checkedValue.map(name => ({
-    memberName: name,
-    share: parseFloat((amount / checkedValue.length).toFixed(2))
-  }));
+  if (!amount || amount <= 0) {
+    showToast("Amount must be greater than 0.", "error");
+    return;
+  }
+
+  if (checkedValue.length < 1) {
+    showToast("Please select at least 1 participant.", "error");
+    return;
+  }
+
+  const share = Number((amount / checkedValue.length).toFixed(2));
+  const splitBetween = checkedValue.map(name => ({ memberName: name, share }));
 
   const updatedExpense = {
     ...oldExpenseData,
@@ -200,24 +210,22 @@ document.getElementById("expense-form").addEventListener("submit", async (e) => 
   };
 
   try {
-    await removeOldExpenseEffect();
-    await applyNewExpenseEffect(updatedExpense);
-
+  
     const res = await fetch(`${API_EXPENSES}/${editExpenseId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updatedExpense)
     });
+    if (!res.ok) throw new Error("Failed to update expense");
 
-    if (res.ok) {
-      localStorage.removeItem("editExpenseId");
-      showToast("Expense updated!");
-      setTimeout(() => {
-        window.location.href = `group.html?groupId=${defaultGroupId}`;
-      }, 1000);
-    } else {
-      showToast("Failed to update expense", "error");
-    }
+    await recomputeGroupBalances(defaultGroupId);
+
+    localStorage.removeItem("editExpenseId");
+    showToast("Expense updated!");
+    setTimeout(() => {
+      window.location.href = `group.html?groupId=${defaultGroupId}`;
+    }, 700);
+
   } catch (err) {
     console.error("Error updating expense:", err);
     showToast("Something went wrong", "error");

@@ -45,8 +45,10 @@ console.log(users);
             checkbox.className = "flex items-center";
             console.log(user.id,loggedInuser);
             
-            const nameClass = user.id === loggedInuser.id ? "text-green-600 font-semibold" : "";            checkbox.innerHTML = `
-              <input type="checkbox" id="user-${user.id}" value="${user.id}" class="mr-2">
+            const nameClass = user.id === loggedInuser.id ? "text-green-600 font-semibold" : "";
+            const isLoggedin= user.id === loggedInuser.id ? "checked" : "";
+              checkbox.innerHTML = `
+              <input type="checkbox" id="user-${user.id}" value="${user.id}" ${isLoggedin}  class="mr-2">
               <label for="user-${user.id}" class="${nameClass}">${user.name}</label>
             `;
 

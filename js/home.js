@@ -144,9 +144,14 @@ async function adjustUserOwes(userName, toUserName, amountDelta, groupId) {
 
   if (!Array.isArray(user.owes)) user.owes = [];
 
-  const owesEntry = user.owes.find(o => o.to === toUserName && o.groupId === groupId);
-  if (owesEntry) {
-    owesEntry.amount = Math.max(0, owesEntry.amount + amountDelta);
+  const owesIndex = user.owes.findIndex(o => o.to === toUserName && o.groupId === groupId);
+  
+  if (owesIndex !== -1) {
+    user.owes[owesIndex].amount += amountDelta;
+    if (user.owes[owesIndex].amount <= 0) {
+      // Remove the entry completely
+      user.owes.splice(owesIndex, 1);
+    }
   } else if (amountDelta > 0) {
     user.owes.push({ to: toUserName, amount: amountDelta, groupId });
   }
@@ -165,9 +170,14 @@ async function adjustUserOwedBy(userName, fromUserName, amountDelta, groupId) {
 
   if (!Array.isArray(user.owedBy)) user.owedBy = [];
 
-  const owedByEntry = user.owedBy.find(o => o.from === fromUserName && o.groupId === groupId);
-  if (owedByEntry) {
-    owedByEntry.amount = Math.max(0, owedByEntry.amount + amountDelta);
+  const owedByIndex = user.owedBy.findIndex(o => o.from === fromUserName && o.groupId === groupId);
+  
+  if (owedByIndex !== -1) {
+    user.owedBy[owedByIndex].amount += amountDelta;
+    if (user.owedBy[owedByIndex].amount <= 0) {
+      // Remove the entry completely
+      user.owedBy.splice(owedByIndex, 1);
+    }
   } else if (amountDelta > 0) {
     user.owedBy.push({ from: fromUserName, amount: amountDelta, groupId });
   }

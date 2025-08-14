@@ -68,15 +68,6 @@ function handleChange(checkbox) {
   } else {
     checkedValue = checkedValue.filter(v => v !== value);
   }
-   
-  console.log("Checked members:", checkedValue);
-    paidBySelect.innerHTML = "";
-    for (const userName of checkedValue) {
-    const option = document.createElement("option");
-    option.value = userName;
-    option.textContent = userName;
-    paidBySelect.appendChild(option);
-  }
 }
 
 
@@ -85,19 +76,25 @@ async function loadUsers() {
   try {
     const res = await fetch(`${API_GROUPS}/${defaultGroupId}`);
     const group = await res.json();
-  requiredGroup=group;
-   groupName.value=group.name;
+    requiredGroup=group;
+    groupName.value=group.name;
     group.participants.forEach(user => {
       const checkboxDiv = document.createElement("div");
+      const option = document.createElement("option");
       checkboxDiv.className = "flex items-center";
+
+      option.value = user;
+      option.textContent = user;
+      paidBySelect.appendChild(option);
 
       checkboxDiv.innerHTML = `
         <input 
           type="checkbox" 
           id="user-${user}" 
           value="${user}" 
-          class="mr-2" 
-          onchange="handleChange(this)">
+          class="mr-2"
+          onchange="handleChange(this)"
+          >
         <label for="user-${user}">${user}</label>
       `;
 
@@ -118,13 +115,20 @@ form.addEventListener("submit", async (e) => {
 
   const amount = parseFloat(form.amount.value);
   const paidBy = form.paidBy.value;
-  const splitType = form.splitType.value;
+  const splitType = "equal";
+
 
   const splitBetween = checkedValue.map(name => ({
     memberName: name,
     share: parseFloat((amount / checkedValue.length).toFixed(2))
   }));
-
+  
+  console.log(splitBetween.length);
+  if(splitBetween.length<1){
+      showToast("Please select at least 1 participants.","error");
+        return;
+  }
+  
   const expense = {
     id: Date.now().toString(),
     groupId: defaultGroupId,
