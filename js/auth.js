@@ -113,7 +113,10 @@ authForm.addEventListener('submit', async (e) => {
       if (users.length > 0) {
         showToast('Login successful!',"success");
         localStorage.setItem('user', JSON.stringify(users[0]));  // TAAKI HOME PAGE PAR NAAM DIKHA SKE
-        window.location.href = 'home.html'; // redirect after login
+        setTimeout(()=>{
+          window.location.href = 'home.html'; // redirect after login
+        },500)
+       
       } else {
         showToast('Invalid email or password!',"error");
       }

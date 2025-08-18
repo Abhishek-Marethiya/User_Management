@@ -93,11 +93,9 @@ async function loadExpenseData() {
 
 
 async function recomputeGroupBalances(groupId) {
-  // Load all expenses in this group
   const expensesRes = await fetch(`${API_EXPENSES}?groupId=${groupId}`);
   const expenses = await expensesRes.json();
 
-  //  Build pairwise owed matrix: owed[u][v] = amount user u owes user v (raw sum)
   const owed = {}; // { [u]: { [v]: number } }
 
   const addOwed = (from, to, amt) => {
@@ -113,8 +111,6 @@ async function recomputeGroupBalances(groupId) {
     }
   }
 
-  // Net opposite directions (A owes B and B owes A)
-  // normalize so only one direction remains per pair
   const usersSet = new Set();
   Object.keys(owed).forEach(u => {
     usersSet.add(u);
@@ -145,8 +141,8 @@ async function recomputeGroupBalances(groupId) {
   const allUsers = await usersRes.json();
 
   // Prepare quick lookups for new owes/owedBy
-  const newOwesByUser = {};   // user -> [{to, amount, groupId}]
-  const newOwedByUser = {};   // user -> [{from, amount, groupId}]
+  const newOwesByUser = {};  
+  const newOwedByUser = {};   
 
   for (const u of usersSet) {
     const pairs = owed[u] || {};
@@ -222,15 +218,22 @@ document.getElementById("expense-form").addEventListener("submit", async (e) => 
 
     localStorage.removeItem("editExpenseId");
     showToast("Expense updated!");
-    setTimeout(() => {
       window.location.href = `group.html?groupId=${defaultGroupId}`;
-    }, 700);
+
 
   } catch (err) {
     console.error("Error updating expense:", err);
     showToast("Something went wrong", "error");
   }
 });
+
+
+const logoutBtn = document.getElementById("logout-btn");
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("user");
+  window.location.href = "index.html";
+});
+
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUsers();
